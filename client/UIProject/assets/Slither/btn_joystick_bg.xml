@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="222,222">
+  <displayList>
+    <image id="n0_o6fk" name="joystick_bg" src="o6fk4" fileName="images/btn_joystick_bg.png" xy="0,0">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </image>
+  </displayList>
+</component>

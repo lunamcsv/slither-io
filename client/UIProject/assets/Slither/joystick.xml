@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="222,222">
+  <displayList>
+    <component id="n0_o6fk" name="center" src="o6fk9" fileName="btn_joystick_bg.xml" xy="65,65" size="91,91" touchable="false"/>
+    <component id="n2_o6fk" name="joystick" src="o6fk8" fileName="images/btn_joystick.xml" xy="0,0" size="222,222">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </component>
+    <graph id="n4_o6fk" name="joystick_touch" xy="0,0" size="222,222" type="rect" lineSize="0" fillColor="#00ffffff">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </graph>
+  </displayList>
+</component>

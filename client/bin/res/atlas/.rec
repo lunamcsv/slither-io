@@ -1,0 +1,11 @@
+D .
+R 6FA2B899 .rec
+R 1092998D assets.atlas
+R A2CBF04D assets.png
+D assets
+P 25421193 101_body_1.png
+P 309CA8FA 101_body_2.png
+P BDC9E5C8 101_head.png
+P 23533A95 bean_1.png
+P D191FDBB bean_2.png
+P B344CB83 bean_3.png

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<packageDescription id="s3p9t53i">
+  <resources>
+    <component id="keav0" name="Main.xml" path="/" exported="true"/>
+    <image id="j74n2" name="map.png" path="/images/" scale="tile"/>
+    <image id="o6fk3" name="bg.png" path="/images/" scale="tile" scale9grid="15,15,30,30"/>
+    <image id="o6fk4" name="btn_joystick_bg.png" path="/images/"/>
+    <image id="o6fk5" name="btn_joystick.png" path="/images/"/>
+    <image id="o6fk6" name="btn_speed.png" path="/images/"/>
+    <component id="o6fk7" name="joystick.xml" path="/" exported="true"/>
+    <component id="o6fk8" name="btn_joystick.xml" path="/images/"/>
+    <component id="o6fk9" name="btn_joystick_bg.xml" path="/"/>
+  </resources>
+  <publish name=""/>
+</packageDescription>

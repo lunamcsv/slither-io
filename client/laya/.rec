@@ -1,0 +1,11 @@
+D .
+R 4CF31F54 .laya
+R 7FB5D663 ignore.cfg
+R 1BD3A02D pageStyles.xml
+D assets
+P FA12A78B 101_body_1.png
+P 309CA8FA 101_body_2.png
+P C6831BB2 101_head.png
+D pages
+D pages/Main
+R 26FFDC61 Main.scene
