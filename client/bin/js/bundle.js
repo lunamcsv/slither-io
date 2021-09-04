@@ -172,7 +172,6 @@ var polea = (() => {
   };
   Config.mapWidth = 5e3;
   Config.mapHeight = 5e3;
-  Config.beanInitCnt = 1;
   Config.snakeBodyRadius = 64;
   Config.speedConfig = { "slow": 6, "fast": 8, "rotation": 10 };
 
@@ -190,9 +189,8 @@ var polea = (() => {
       this.eatBean = 0;
       this.bodyBeanNum = 6;
       this.bodyMaxNum = 500;
-      this.headWidth = 116;
       this.id = "";
-      this.bot = false;
+      this.bot = true;
       this.id = id;
       this.rotation = angle;
       this.curRotation = this.rotation;
@@ -201,14 +199,14 @@ var polea = (() => {
       this.speed = Config.speedConfig[this.currentSpeed];
       this.skinId = skinId + 100;
       this.visible = false;
-      this.snakeSize = this.snakeInitSize;
+      this.scaleRatio = this.snakeInitSize;
       this.width = Config.snakeBodyRadius;
       this.height = Config.snakeBodyRadius;
       this.zOrder = 11e3;
       this.pivot(this.width / 2, this.height / 2);
       this.pos(x, y);
       this.head = new Laya.Sprite();
-      this.head.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded, [x, y]));
+      this.head.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded));
     }
     loaded() {
       this.addChild(this.head);
@@ -240,27 +238,29 @@ var polea = (() => {
       let angle = this.rotation * Math.PI / 180;
       let x = this.speed * Math.cos(angle);
       let y = this.speed * Math.sin(angle);
-      this.rotation = this.nextRotation;
-      let pos = { x: this.x, y: this.y };
       let posBefore = { x: this.x, y: this.y };
-      if (!(this.x + x >= Config.mapWidth - this.width / 2 || this.x + x <= this.width / 2)) {
-        this.x += x;
-        pos.x = this.x;
+      let nextPosX = this.x + x;
+      let nextPosY = this.y + y;
+      this.rotation = this.nextRotation;
+      if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
+        this.x = nextPosX;
       } else {
+        if (!this.bot) {
+          console.log("moveOut:", Date.now());
+        }
         return;
       }
-      if (!(this.y + y >= Config.mapHeight - this.width / 2 || this.y + y <= this.width / 2)) {
-        this.y += y;
-        pos.y = this.y;
+      if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
+        this.y = nextPosY;
       } else {
+        if (!this.bot) {
+          console.log("moveOut:", Date.now());
+        }
         return;
       }
+      let nextAngle = Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x);
       for (let index = 1; index <= this.speed; index++) {
-        angle = Math.atan2(pos.y - posBefore.y, pos.x - posBefore.x);
-        this.pathArr.unshift({
-          x: index * Math.cos(angle) + posBefore.x,
-          y: index * Math.sin(angle) + posBefore.y
-        });
+        this.pathArr.unshift({ x: index * Math.cos(nextAngle) + posBefore.x, y: index * Math.sin(nextAngle) + posBefore.y });
       }
     }
     bodyMove() {
@@ -281,14 +281,14 @@ var polea = (() => {
       ele.graphics.clear();
       ele.pivot(ele.width / 2, ele.height / 2);
       if (eleType == "body") {
-        ele.width = Config.snakeBodyRadius * this.snakeSize;
-        ele.height = Config.snakeBodyRadius * this.snakeSize;
+        ele.width = Config.snakeBodyRadius * this.scaleRatio;
+        ele.height = Config.snakeBodyRadius * this.scaleRatio;
       } else {
-        ele.width = ele.width * this.snakeSize;
-        ele.height = ele.height * this.snakeSize;
+        ele.width = ele.width * this.scaleRatio;
+        ele.height = ele.height * this.scaleRatio;
       }
       ele.pos(x, y);
-      Config.speedConfig["rotation"] = 4 / this.snakeSize;
+      Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
     speedChange() {
       let currentSpeed = Config.speedConfig[this.currentSpeed];
@@ -335,14 +335,14 @@ var polea = (() => {
           this.pathArr.push({ x: this.x - index * Math.cos(r * Math.PI / 180), y: this.y - index * Math.sin(r * Math.PI / 180) });
         }
         this.eatBean = this.eatBean % this.bodyBeanNum;
-        if (this.snakeSize < 1) {
-          this.snakeSize = this.snakeInitSize + (1 - this.snakeInitSize) / this.bodyMaxNum * this.bodyArr.length;
+        if (this.scaleRatio < 1) {
+          this.scaleRatio = this.snakeInitSize + (1 - this.snakeInitSize) / this.bodyMaxNum * this.bodyArr.length;
           this.bodyArr.forEach((element) => {
             this.snakeScale(element, "body");
           });
           this.snakeScale(this);
         } else {
-          this.snakeSize = 1;
+          this.scaleRatio = 1;
         }
       }
     }
@@ -401,6 +401,10 @@ var polea = (() => {
         this.initGlobalConfig(data);
       } else if (type == "removeSnake") {
         this.removeSnake(data);
+      } else if (type == "addBean") {
+        this.addBean(data);
+      } else if (type == "removeBean") {
+        this.removeBean(data);
       }
     }
     addSnake(data) {
@@ -409,9 +413,14 @@ var polea = (() => {
       this.snakeMap[id] = snake;
       if (this.room.sessionId == id) {
         this.snakeSelf = snake;
+        snake.bot = false;
       }
       this.snakeArr.push(snake);
       this.battleMap.addChild(snake);
+    }
+    removeBean(data) {
+      let id = data.id;
+      this.beanMap[id].destroy();
     }
     updateSnake(data) {
       data.forEach((element) => {
@@ -431,23 +440,24 @@ var polea = (() => {
       let snakes = data.snakes;
       let beans = data.beans;
       snakes.forEach((element) => {
-        let id = element.id;
-        let pos = element.pos;
-        let snake = new Snake(id, 1, pos.x, pos.y);
-        this.snakeMap[id] = snake;
-        if (this.room.sessionId == id) {
-          this.snakeSelf = snake;
+        if (element.alive) {
+          let id = element.id;
+          let pos = element.pos;
+          let rotation = element.rotation;
+          console.log(rotation);
+          let snake = new Snake(id, 1, pos.x, pos.y, rotation);
+          this.snakeMap[id] = snake;
+          if (this.room.sessionId == id) {
+            this.snakeSelf = snake;
+          }
+          this.snakeArr.push(snake);
+          this.battleMap.addChild(snake);
         }
-        this.snakeArr.push(snake);
-        this.battleMap.addChild(snake);
       });
       beans.forEach((bean) => {
-        let id = bean.id;
-        let pos = bean.pos;
-        let skin = bean.skin;
-        let snake = new Bean(id, skin, pos.x, pos.y);
-        this.beanMap[id] = snake;
-        this.battleMap.addChild(snake);
+        if (bean.alive) {
+          this.addBean(bean);
+        }
       });
     }
     init() {
@@ -474,7 +484,13 @@ var polea = (() => {
       this.battleMap.width = Config.mapWidth;
       this.battleMap.height = Config.mapHeight;
     }
-    addBean(beanOrder, x, y, colorNum) {
+    addBean(data) {
+      let id = data.id;
+      let pos = data.pos;
+      let skin = data.skin;
+      let bean = new Bean(id, skin, pos.x, pos.y);
+      this.beanMap[id] = bean;
+      this.battleMap.addChild(bean);
     }
     gameLoop() {
       this.snakeMove();
@@ -491,7 +507,7 @@ var polea = (() => {
         return;
       }
       ;
-      let mapScale = this.snakeSelf.snakeInitSize / this.snakeSelf.snakeSize < 0.7 ? 0.7 : this.snakeSelf.snakeInitSize / this.snakeSelf.snakeSize;
+      let mapScale = this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio < 0.7 ? 0.7 : this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio;
       let x = -1 * (this.snakeSelf.x + this.snakeSelf.width / 2) * mapScale + GameConfig.width / 2, y = -1 * (this.snakeSelf.y + this.snakeSelf.height / 2) * mapScale + GameConfig.height / 2;
       this.battleMap.x = x;
       this.battleMap.y = y;

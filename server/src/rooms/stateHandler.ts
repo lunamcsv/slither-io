@@ -53,7 +53,6 @@ export class StateHandlerRoom extends Room {
             console.log("create_role:",client.sessionId)
             if (!this.roleMap[client.sessionId]) {
                 this.roleMap[client.sessionId] = client;
-                
                 this.LogicManager.createRoleSnake({id:client.sessionId});
             }
         })
@@ -85,7 +84,7 @@ export class StateHandlerRoom extends Room {
             this.LogicManager.startGame();
             this.isStart = true;
         }else{
-            this.broadcast(GAME_START, {})
+            // this.broadcast(GAME_START, {}); // 通知开始游戏
         }
         this.LogicManager.initConfig(client);
 
@@ -103,6 +102,13 @@ export class StateHandlerRoom extends Room {
 
     onLeave(client) {
         // this.state.removePlayer(client.sessionId);
+        if (!this.roleMap[client.sessionId]) {
+            delete this.roleMap[client.sessionId];
+        }
+        if(Object.keys(this.roleMap).length == 0){
+            console.log("房间没有用户了")
+            this.LogicManager.destroy();
+        }
     }
 
     onDispose() {

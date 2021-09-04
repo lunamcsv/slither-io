@@ -3,7 +3,7 @@ import Snake from "../script/Snake"
 import Config from "../Config";
 import GameConfig from "../GameConfig";
 import Joystick from "../fgui/extension/Joystick";
-import { IBase, IGlobalData, IRotation, ISnakeData } from "../types/index";
+import { IBase, IBeanData, IGlobalData, IRotation, ISnakeData } from "../../types/index";
 declare const Colyseus: any;
 export default class GameManager {
 
@@ -55,7 +55,7 @@ export default class GameManager {
         this.room.send("cmd", message);
     }
 
-    handleMsg(type: string, data: any):void{
+    handleMsg(type: string, data: any): void {
         if (type == "updateSnake") {
             this.updateSnake(data);
         } else if (type == "addSnake") {
@@ -64,6 +64,10 @@ export default class GameManager {
             this.initGlobalConfig(data);
         } else if (type == "removeSnake") {
             this.removeSnake(data);
+        } else if (type == "addBean") {
+            this.addBean(data);
+        } else if (type == "removeBean") {
+            this.removeBean(data);
         }
 
     }
@@ -74,10 +78,17 @@ export default class GameManager {
         this.snakeMap[id] = snake;
         if (this.room.sessionId == id) {
             this.snakeSelf = snake;
+            snake.bot =false;
         }
         this.snakeArr.push(snake);
         this.battleMap.addChild(snake);
         // console.log("addSnake:", data,this.snakeMap);
+    }
+
+    removeBean(data: IBase): void {
+        let id = data.id;
+        this.beanMap[id].destroy();
+        // todo 对象池管理
     }
 
     updateSnake(data: IRotation[]): void {
@@ -94,28 +105,30 @@ export default class GameManager {
         this.snakeMap[data.id].destroy();
     }
 
-    initGlobalConfig(data: IGlobalData):void{
+    initGlobalConfig(data: IGlobalData): void {
         console.log(data);
         let snakes = data.snakes;
         let beans = data.beans;
         snakes.forEach(element => {
-            let id = element.id;
-            let pos = element.pos;
-            let snake = new Snake(id, 1, pos.x, pos.y);
-            this.snakeMap[id] = snake;
-            if (this.room.sessionId == id) {
-                this.snakeSelf = snake;
+            if (element.alive) {
+                let id = element.id;
+                let pos = element.pos;
+                let rotation = element.rotation;
+                console.log(rotation);
+                let snake = new Snake(id, 1, pos.x, pos.y, rotation);
+                this.snakeMap[id] = snake;
+                if (this.room.sessionId == id) {
+                    this.snakeSelf = snake;
+                }
+                this.snakeArr.push(snake);
+                this.battleMap.addChild(snake);
+
             }
-            this.snakeArr.push(snake);
-            this.battleMap.addChild(snake);
         });
         beans.forEach(bean => {
-            let id = bean.id;
-            let pos = bean.pos;
-            let skin = bean.skin;
-            let snake = new Bean(id, skin, pos.x, pos.y);
-            this.beanMap[id] = snake;
-            this.battleMap.addChild(snake);
+            if(bean.alive){
+                this.addBean(bean);
+            }
         });
     }
 
@@ -151,12 +164,14 @@ export default class GameManager {
         this.battleMap.height = Config.mapHeight;
     }
 
-    addBean(beanOrder: number, x?: number, y?: number, colorNum?: number): void {
-        // let bean = new Bean(x, y, colorNum)
-        // bean.orderNum = beanOrder;
-        // this.beans[beanOrder] = bean;
-        // this.battleMap.addChild(bean);
-        // this.beanNum++;
+    addBean(data: IBeanData): void {
+        // todo 使用对象池管理
+        let id = data.id;
+        let pos = data.pos;
+        let skin = data.skin;
+        let bean = new Bean(id, skin, pos.x, pos.y);
+        this.beanMap[id] = bean;
+        this.battleMap.addChild(bean);
     }
 
     //游戏主循环
@@ -176,7 +191,7 @@ export default class GameManager {
     //做地图相对移动，以便能让玩家的蛇始终居中
     mapMove(): void {
         if (!this.snakeSelf) { return };
-        let mapScale = this.snakeSelf.snakeInitSize / this.snakeSelf.snakeSize < 0.7 ? 0.7 : this.snakeSelf.snakeInitSize / this.snakeSelf.snakeSize
+        let mapScale = this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio < 0.7 ? 0.7 : this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio
         let x = -1 * (this.snakeSelf.x + this.snakeSelf.width / 2) * mapScale + GameConfig.width / 2,
             y = -1 * (this.snakeSelf.y + this.snakeSelf.height / 2) * mapScale + GameConfig.height / 2;
         this.battleMap.x = x;

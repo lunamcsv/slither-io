@@ -1,7 +1,7 @@
 import { Circle, Vector } from "sat"
 export default class Bean extends Circle {
     skin: number;
-    radius: number = 5;
+    radius: number = 24;
     id: string;
     alive: boolean = true;
 
