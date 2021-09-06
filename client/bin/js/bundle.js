@@ -191,12 +191,14 @@ var polea = (() => {
       this.bodyMaxNum = 500;
       this.id = "";
       this.bot = true;
+      this.offset = new Laya.Point();
       this.id = id;
       this.rotation = angle;
       this.curRotation = this.rotation;
       this.nextRotation = this.rotation;
       this.alive = true;
-      this.speed = Config.speedConfig[this.currentSpeed];
+      this.speedX = Config.speedConfig[this.currentSpeed];
+      this.speedY = Config.speedConfig[this.currentSpeed];
       this.skinId = skinId + 100;
       this.visible = false;
       this.scaleRatio = this.snakeInitSize;
@@ -226,7 +228,6 @@ var polea = (() => {
     }
     move() {
       if (this.alive) {
-        this.bodySpace = Math.floor(this.width / 10 * 8);
         this.headMove();
         this.bodyMove();
         this.speedChange();
@@ -235,14 +236,14 @@ var polea = (() => {
       }
     }
     headMove() {
-      let angle = this.rotation * Math.PI / 180;
-      let x = this.speed * Math.cos(angle);
-      let y = this.speed * Math.sin(angle);
       let posBefore = { x: this.x, y: this.y };
-      let nextPosX = this.x + x;
-      let nextPosY = this.y + y;
+      let nextPosX = this.x + this.offset.x;
+      let nextPosY = this.y + this.offset.y;
+      if (!this.bot) {
+        console.log(nextPosX, nextPosY);
+      }
       this.rotation = this.nextRotation;
-      if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
+      if (!(nextPosX >= Config.mapWidth - this.head.width / 2 || nextPosX <= this.head.width / 2)) {
         this.x = nextPosX;
       } else {
         if (!this.bot) {
@@ -250,7 +251,7 @@ var polea = (() => {
         }
         return;
       }
-      if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
+      if (!(nextPosY >= Config.mapHeight - this.head.width / 2 || nextPosY <= this.head.width / 2)) {
         this.y = nextPosY;
       } else {
         if (!this.bot) {
@@ -259,7 +260,7 @@ var polea = (() => {
         return;
       }
       let nextAngle = Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x);
-      for (let index = 1; index <= this.speed; index++) {
+      for (let index = 1; index <= Config.speedConfig[this.currentSpeed]; index++) {
         this.pathArr.unshift({ x: index * Math.cos(nextAngle) + posBefore.x, y: index * Math.sin(nextAngle) + posBefore.y });
       }
     }
@@ -292,9 +293,13 @@ var polea = (() => {
     }
     speedChange() {
       let currentSpeed = Config.speedConfig[this.currentSpeed];
-      this.speed = this.currentSpeed == "slow" ? this.speed > currentSpeed ? this.speed - 1 : currentSpeed : this.speed < currentSpeed ? this.speed + 1 : currentSpeed;
+      this.speedX = this.currentSpeed == "slow" ? this.speedX > currentSpeed ? this.speedX - 1 : currentSpeed : this.speedX < currentSpeed ? this.speedX + 1 : currentSpeed;
+      this.speedY = this.currentSpeed == "slow" ? this.speedY > currentSpeed ? this.speedY - 1 : currentSpeed : this.speedY < currentSpeed ? this.speedY + 1 : currentSpeed;
     }
     rotationChange() {
+      if (this.curRotation == this.nextRotation) {
+        return;
+      }
       let rotationSpan = Math.abs(this.curRotation - this.nextRotation);
       let rotation = Config.speedConfig["rotation"];
       let perRotation = rotationSpan < rotation ? rotationSpan : rotation;
@@ -427,9 +432,14 @@ var polea = (() => {
         let id = element.id;
         let rotation = element.rotation;
         let snake = this.snakeMap[id];
-        if (!snake)
-          return;
-        snake.curRotation = rotation;
+        if (snake && snake.alive) {
+          snake.curRotation = rotation;
+          snake.offset.x = element.pos.x - snake.x;
+          snake.offset.y = element.pos.y - snake.y;
+          if (!snake.bot) {
+            console.log(snake.offset);
+          }
+        }
       });
     }
     removeSnake(data) {
@@ -472,7 +482,7 @@ var polea = (() => {
       Laya.stage.on(Joystick.JoystickMoving, this, this.onTouchMove);
     }
     onTouchMove(evt) {
-      let rotation = evt.degree;
+      let rotation = Math.floor(evt.degree);
       this.room.send("updateRotation", { id: this.room.sessionId, rotation });
     }
     startGame() {

@@ -1,8 +1,9 @@
 export interface IBase {
     id: string;
 }
-export interface IRotation extends IBase {
-    rotation: number
+export interface IStatus extends IBase {
+    rotation: number;
+    pos: Laya.Vector2;
 }
 
 export interface ISnakeData extends IBase {

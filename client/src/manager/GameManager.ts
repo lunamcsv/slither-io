@@ -3,7 +3,7 @@ import Snake from "../script/Snake"
 import Config from "../Config";
 import GameConfig from "../GameConfig";
 import Joystick from "../fgui/extension/Joystick";
-import { IBase, IBeanData, IGlobalData, IRotation, ISnakeData } from "../../types/index";
+import { IBase, IBeanData, IGlobalData,  ISnakeData, IStatus } from "../../types/index";
 declare const Colyseus: any;
 export default class GameManager {
 
@@ -78,7 +78,7 @@ export default class GameManager {
         this.snakeMap[id] = snake;
         if (this.room.sessionId == id) {
             this.snakeSelf = snake;
-            snake.bot =false;
+            snake.bot = false;
         }
         this.snakeArr.push(snake);
         this.battleMap.addChild(snake);
@@ -91,13 +91,20 @@ export default class GameManager {
         // todo 对象池管理
     }
 
-    updateSnake(data: IRotation[]): void {
+    updateSnake(data: IStatus[]): void {
         data.forEach(element => {
             let id = element.id;
             let rotation = element.rotation;
             let snake = this.snakeMap[id];
-            if (!snake) return;
-            snake.curRotation = rotation;
+            if (snake && snake.alive) {
+                snake.curRotation = rotation;
+                snake.offset.x = element.pos.x - snake.x; // 与服务器的偏差值
+                snake.offset.y = element.pos.y - snake.y;
+                // snake.move();
+                if(!snake.bot){
+                    console.log(snake.offset)
+                }
+            }
         });
     }
 
@@ -126,7 +133,7 @@ export default class GameManager {
             }
         });
         beans.forEach(bean => {
-            if(bean.alive){
+            if (bean.alive) {
                 this.addBean(bean);
             }
         });
@@ -147,8 +154,8 @@ export default class GameManager {
     }
 
     onTouchMove(evt: { [key: string]: any }): void {
-        // console.log(evt.degree);
-        let rotation = evt.degree;
+        let rotation = Math.floor(evt.degree);
+        // console.log(rotation);
         this.room.send("updateRotation", { id: this.room.sessionId, rotation });
     }
 

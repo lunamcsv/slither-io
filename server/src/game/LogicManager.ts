@@ -6,6 +6,7 @@ import Bean from "./Bean";
 import Config from "./Config";
 import { GAME_START } from "./constants";
 import Snake from "./Snake";
+import { BoundingBox, Bound, createQuadTree, QuadTree } from 'simplequad';
 export default class LogicManager {
     public room: StateHandlerRoom;
 
@@ -18,9 +19,21 @@ export default class LogicManager {
     private beanOrder: number = 0;
     public snakeArr: Snake[] = [];
     public snakeMap: { [key: string]: Snake } = {};
+    public beanQuadTree: QuadTree;
     public init() {
+        this.createBeanQuadTree();
         this.createBean();
         this.createSnake();
+    }
+
+    createBeanQuadTree() {
+        let bounds: BoundingBox = {
+            x: 0,
+            y: 0,
+            width: Config.mapWidth,
+            height: Config.mapHeight,
+        };
+        this.beanQuadTree = createQuadTree(bounds, Config.beanSpawnMax);
     }
 
 
@@ -28,10 +41,23 @@ export default class LogicManager {
         for (let i = 0; i < Config.beanSpawnMax; i++) {
             let id = `${i}`;
             let skin = Math.floor(Math.random() * Config.beanSkinLength + 1);
-            let pos = new Vector(Math.random() * Config.mapWidth, Math.random() * Config.mapHeight);
+            let x = Math.floor(Math.random() * Config.mapWidth);
+            let y = Math.floor(Math.random() * Config.mapHeight);
+            let pos = new Vector(x, y);
             let bean = new Bean(id, pos, Config.beanRadius, skin);
             this.beanArr.push(bean);
             this.beansMap[id] = bean;
+            let bounds: BoundingBox = {
+                x,
+                y,
+                width: Config.beanRadius * 2,
+                height: Config.beanRadius * 2,
+            };
+            let beanBounds = {
+                ...bounds,
+                id
+            }
+            this.beanQuadTree.add(beanBounds);
         }
     }
 
@@ -44,7 +70,7 @@ export default class LogicManager {
                 pos = new Vector(x, y);
             // let rotation = Math.floor(Math.random() * 360);
             let rotation = 0;
-            let snake = new Snake(id, skinId, pos, Config.initWidth/2, rotation);
+            let snake = new Snake(id, skinId, pos, Config.initWidth / 2, rotation);
             snake.handler = this;
             snake.bot = true;
             this.snakeArr.push(snake);
@@ -60,7 +86,7 @@ export default class LogicManager {
             pos = new Vector(x, y);
         // let rotation = Math.floor(Math.random() * 360);
         let rotation = 0;
-        let snake = new Snake(id, skin, pos, Config.initWidth/2, rotation);
+        let snake = new Snake(id, skin, pos, Config.initWidth / 2, rotation);
         snake.handler = this;
         this.snakeArr.push(snake);
         this.snakeMap[id] = snake;
@@ -75,18 +101,18 @@ export default class LogicManager {
         let snakes = this.snakeArr.map((snake: Snake) => {
             let { alive, id, pos, rotation } = snake;
             // if (alive) {
-                return {
-                    id, pos, rotation,alive
-                }
+            return {
+                id, pos, rotation, alive
+            }
             // }
         });
 
         let beans = this.beanArr.map((bean: Bean) => {
             let { alive, id, skin, pos } = bean;
             // if (alive) {
-                return {
-                    id, skin, pos,alive
-                }
+            return {
+                id, skin, pos, alive
+            }
             // }
         });
 
@@ -99,7 +125,7 @@ export default class LogicManager {
         this.broadcast(GAME_START, {})
         // 开始刷新（每一帧刷新一次）
         this.room.setSimulationInterval(this.update.bind(this), 16);
-        this.room.clock.setInterval(this.sendUpdates.bind(this), 25);
+        // this.room.clock.setInterval(this.sendUpdates.bind(this), 25);
         // setInterval(sendUpdates, 1000 / c.networkUpdateFactor);
     }
 
@@ -115,22 +141,19 @@ export default class LogicManager {
 
 
     public broadcast(type: string, data: any) {
-        // console.log(type, data);
         this.room.broadcastAll(type, data);
     }
 
     public update(): void {
-        // this.hitTestSnake();
+        this.hitTestSnake();
         this.snakeMove();
-        // this.checkMap();
-        // this.eatBean();
+        this.eatBean();
+        this.sendUpdates();
     }
 
     public snakeMove(): void {
-        this.snakeArr.map((snake) => {
-            if (snake.alive) {
-                snake.move();
-            }
+        this.snakeArr.forEach((snake) => {
+            snake.move();
         });
         // for (let index = 0; index < this.snakeArr.length; index++) {
         //     let snake = this.snakeArr[index]
@@ -181,28 +204,8 @@ export default class LogicManager {
         // }
     }
 
-    public checkMap(): void {
-        for (let i = 0; i < this.snakeArr.length; i++) {
-            let snake = this.snakeArr[i];
-            let { pos, alive, r } = snake;
-            if (alive) {
-                let { x, y } = pos;
-                let nextStepX = snake.speed * Math.cos(snake.rotation * Math.PI / 180)
-                let nextStepY = snake.speed * Math.sin(snake.rotation * Math.PI / 180)
-                // if (!bot) console.log(pos)
-                if (x - r - nextStepX <= 0 || x + r + nextStepX >= Config.mapWidth) {
-                    this.removeSnake(snake);
-                    continue;
-                }
-                if (y - r - nextStepY <= 0 || y + r + nextStepY >= Config.mapHeight) {
-                    this.removeSnake(snake);
-                    continue;
-                }
-            }
-        }
-    }
-
     public removeSnake(snake: Snake) {
+        snake.alive = false;
         let { id, pos } = snake;
         let { x, y } = pos;
         this.broadcast("removeSnake", { id });
@@ -238,20 +241,21 @@ export default class LogicManager {
 
 
     public eatBean(): void {
-        // 四叉树 todo
-        for (let i = 0; i < this.beanArr.length; i++) {
-            let bean = this.beanArr[i];
-            if (bean.alive) {
-                for (let j = 0; j < this.snakeArr.length; j++) {
-                    let snake = this.snakeArr[j];
-                    if (snake.alive) {
-                        let result = testCircleCircle(bean, snake);
-                        if (result) {
-                            this.removeBean(bean);
-                            break;
-                        }
-                    }
+        // 四叉树
+        for (let j = 0; j < this.snakeArr.length; j++) {
+            let snake = this.snakeArr[j];
+            if (snake.alive) {
+                let { pos, width } = snake;
+                let { x, y } = pos;
+                let snakeBounds = {
+                    x, y, width, height: width
                 }
+                this.beanQuadTree.query(snakeBounds).forEach((bean) => {
+                    let b = this.beansMap[bean['id']];
+                    this.removeBean(b);
+                    this.beanQuadTree.remove(bean);
+                });
+
             }
         }
     }
@@ -263,8 +267,9 @@ export default class LogicManager {
             let { pos, alive } = snake;
             if (alive) {
                 let { x, y } = pos;
-                let nextStepX = snake.speed * Math.cos(snake.rotation * Math.PI / 180) + x;
-                let nextStepY = snake.speed * Math.sin(snake.rotation * Math.PI / 180) + y;
+                let angle = snake.rotation * Math.PI / 180;
+                let nextStepX = snake.speed * Math.cos(angle) + x;
+                let nextStepY = snake.speed * Math.sin(angle) + y;
                 for (let j = 0; j < len; j++) {
                     let target = this.snakeArr[j];
                     if (target.alive) {

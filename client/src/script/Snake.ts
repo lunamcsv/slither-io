@@ -8,7 +8,8 @@ export default class Snake extends Laya.Sprite {
     snakeLength: number = 24
     kill: number = 0;
     alive: boolean = true;
-    speed: number;
+    speedX: number;
+    speedY: number;
     skinId: number;
     curRotation: number; // 当前摇杆的旋转角度
     nextRotation: number; // 下一个转角角度
@@ -21,6 +22,7 @@ export default class Snake extends Laya.Sprite {
     id: string = "";
     bot: boolean = true;
     head: Laya.Sprite;
+    offset: Laya.Point = new Laya.Point();
 
     constructor(id: string, skinId: number, x: number, y: number, angle: number = 0) {
         super()
@@ -29,7 +31,8 @@ export default class Snake extends Laya.Sprite {
         this.curRotation = this.rotation;
         this.nextRotation = this.rotation;
         this.alive = true;
-        this.speed = Config.speedConfig[this.currentSpeed];
+        this.speedX = Config.speedConfig[this.currentSpeed];
+        this.speedY = Config.speedConfig[this.currentSpeed];
         this.skinId = skinId + 100;
         this.visible = false;
         this.scaleRatio = this.snakeInitSize;
@@ -66,7 +69,7 @@ export default class Snake extends Laya.Sprite {
 
     move(): void {
         if (this.alive) {
-            this.bodySpace = Math.floor(this.width / 10 * 8)
+            // this.bodySpace = Math.floor(this.width / 10 * 8)
             this.headMove()
             this.bodyMove()
             this.speedChange()
@@ -77,35 +80,52 @@ export default class Snake extends Laya.Sprite {
 
 
     headMove(): void {
-        let angle = this.rotation * Math.PI / 180;
-        let x = this.speed * Math.cos(angle);
-        let y = this.speed * Math.sin(angle);
+        // let angle = Math.floor(this.rotation * Math.PI / 180 * 100) / 100;
+        // if (this.offset.x > 30) {
+        //     this.speedX +=1;
+        // } else if (this.offset.x < -30) {
+        //     this.speedX -=1;
+        // } else {
+        //     this.speedX = Config.speedConfig[this.currentSpeed];
+        // }
+        // if (this.offset.y > 30) {
+        //     this.speedY +=1;
+        // } else if (this.offset.y < -30) {
+        //     this.speedY -=1;
+        // } else {
+        //     this.speedY = Config.speedConfig[this.currentSpeed];
+        // // }
+        // let x = Math.floor(this.speedX * Math.floor(Math.cos(angle) * 100) / 100);
+        // let y = Math.floor(this.speedY * Math.floor(Math.sin(angle) * 100) / 100);
         let posBefore = { x: this.x, y: this.y };
-        let nextPosX = this.x + x;
-        let nextPosY = this.y + y;
 
+        let nextPosX = this.x + this.offset.x;
+        let nextPosY = this.y + this.offset.y;
+        if (!this.bot) {
+            console.log(nextPosX,nextPosY);
+        }
         this.rotation = this.nextRotation;
-        if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
+        if (!(nextPosX >= Config.mapWidth - this.head.width / 2 || nextPosX <= this.head.width / 2)) {
             this.x = nextPosX;
         } else {
             // this.destroy()
-            if(!this.bot){
-                console.log("moveOut:",Date.now())
+            if (!this.bot) {
+                console.log("moveOut:", Date.now())
             }
             return;
         }
-        if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
+        if (!(nextPosY >= Config.mapHeight - this.head.width / 2 || nextPosY <= this.head.width / 2)) {
             this.y = nextPosY;
         } else {
             // this.destroy()
-            if(!this.bot){
-                console.log("moveOut:",Date.now())
+            if (!this.bot) {
+                console.log("moveOut:", Date.now())
             }
             return;
         }
 
         let nextAngle = Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x);
-        for (let index = 1; index <= this.speed; index++) {
+        for (let index = 1; index <= Config.speedConfig[this.currentSpeed]; index++) {
             this.pathArr.unshift({ x: index * Math.cos(nextAngle) + posBefore.x, y: index * Math.sin(nextAngle) + posBefore.y })
         }
     }
@@ -144,10 +164,15 @@ export default class Snake extends Laya.Sprite {
 
     speedChange(): void {
         let currentSpeed = Config.speedConfig[this.currentSpeed];
-        this.speed = this.currentSpeed == 'slow' ? (this.speed > currentSpeed ? this.speed - 1 : currentSpeed) : (this.speed < currentSpeed ? this.speed + 1 : currentSpeed);
+        // this.speed = this.currentSpeed == 'slow' ? (this.speed > currentSpeed ? this.speed - 1 : currentSpeed) : (this.speed < currentSpeed ? this.speed + 1 : currentSpeed);
+        this.speedX = this.currentSpeed == 'slow' ? (this.speedX> currentSpeed ? this.speedX- 1 : currentSpeed) : (this.speedX< currentSpeed ? this.speedX+ 1 : currentSpeed);
+        this.speedY = this.currentSpeed == 'slow' ? (this.speedY > currentSpeed ? this.speedY - 1 : currentSpeed) : (this.speedY < currentSpeed ? this.speedY + 1 : currentSpeed);
     }
 
     rotationChange(): void {
+        if (this.curRotation == this.nextRotation) {
+            return
+        }
         let rotationSpan = Math.abs(this.curRotation - this.nextRotation); // 转角差值
         let rotation = Config.speedConfig['rotation'];
         let perRotation = rotationSpan < rotation ? rotationSpan : rotation;
@@ -158,7 +183,6 @@ export default class Snake extends Laya.Sprite {
             this.nextRotation += this.curRotation > this.nextRotation && rotationSpan <= 180 ? perRotation : -perRotation;
         }
         this.nextRotation = Math.abs(this.nextRotation) > 180 ? (this.nextRotation > 0 ? this.nextRotation - 360 : this.nextRotation + 360) : this.nextRotation;
-        
     }
 
     addBody(x: number, y: number, r: number): void {

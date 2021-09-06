@@ -73,12 +73,15 @@ export default class Snake extends Circle {
     }
 
     headMove(): void {
-        let angle = this.rotation * Math.PI / 180;
-        let x = this.speed * Math.cos(angle);
-        let y = this.speed * Math.sin(angle);
+        let angle = Math.floor(this.rotation * Math.PI / 180 * 100) / 100;
+        let x = Math.floor(this.speed * Math.floor(Math.cos(angle)*100)/100);
+        let y = Math.floor(this.speed * Math.floor(Math.sin(angle)*100)/100);
         let nextPosX = this.pos.x + x;
         let nextPosY = this.pos.y + y;
-        if (!(nextPosX >= Config.mapWidth - this.r - 26|| nextPosX <= this.r + 26)) {
+        // if (!this.bot && this.alive) {
+        //     console.log("moveOut:", x,y,nextPosX,nextPosY)
+        // }
+        if (!(nextPosX >= Config.mapWidth - this.r - 26 || nextPosX <= this.r + 26)) { // 算上头部的多出部分
             this.pos.x = nextPosX;
         } else {
             if (!this.bot && this.alive) {
@@ -99,7 +102,7 @@ export default class Snake extends Circle {
 
         let posBefore = { x: this.pos.x, y: this.pos.y };
         let nextAngle = Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x);
-        
+
         for (let index = 1; index <= this.speed; index++) {
             this.pathArr.unshift({ x: index * Math.cos(nextAngle) + posBefore.x, y: index * Math.sin(nextAngle) + posBefore.y })
         }
@@ -122,26 +125,22 @@ export default class Snake extends Circle {
         }
     }
 
-    snakeScale(ele: Circle, eleType: string = "head"): void {
+    snakeScale(ele: Circle): void {
         ele.r = this.r * this.scaleRatio;
-        // ele.pos = new Vector(); // todo
-        // let x = ele.x, y = ele.y;
-        // ele.pivot(ele.width / 2, ele.height / 2)
-        // ele.graphics.clear()
-        // ele.loadImage("images/" + eleType + this.skin + ".png", 0, 0, this.r * this.scaleRatio, this.r * this.scaleRatio)
-        // ele.pivot(ele.width / 2, ele.height / 2)
-        // ele.pos(x, y)
         this.bodySpace = Math.floor(this.width / 10 * 8)
         Config.speedConfig["rotation"] = 4 / this.scaleRatio
     }
 
     speedChange(): void {
-        this.speed = this.speedNow == 'slow' ?
-            (this.speed > Config.speedConfig[this.speedNow] ? this.speed - 1 : Config.speedConfig[this.speedNow])
-            : (this.speed < Config.speedConfig[this.speedNow] ? this.speed + 1 : Config.speedConfig[this.speedNow])
+        let speed = Config.speedConfig[this.speedNow];
+        this.speed = this.speedNow == 'slow' ? (this.speed > speed ? this.speed - 1 : speed) : (this.speed < speed ? this.speed + 1 : speed);
     }
 
+
     rotationChange(): void {
+        if (this.curRotation == this.nextRotation) {
+            return;
+        }
         let perRotation = Math.abs(this.curRotation - this.nextRotation) < Config.speedConfig['rotation'] ? Math.abs(this.curRotation - this.nextRotation) : Config.speedConfig['rotation']
         if (this.curRotation < -0 && this.nextRotation > 0 && Math.abs(this.curRotation) + this.nextRotation > 180) {
             perRotation = (180 - this.nextRotation) + (180 + this.curRotation) < Config.speedConfig['rotation'] ? (180 - this.nextRotation) + (180 + this.curRotation) : Config.speedConfig['rotation']
@@ -167,8 +166,8 @@ export default class Snake extends Circle {
         // body.alpha = 1
         // }))
         let body = new Circle(new Vector(x, y), this.r);
-        this.snakeScale(body, "body")
-        this.bodyArr.push(body)
+        this.snakeScale(body);
+        this.bodyArr.push(body);
     }
 
     bodyCheck() {
