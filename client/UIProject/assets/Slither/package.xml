@@ -6,10 +6,13 @@
     <image id="o6fk3" name="bg.png" path="/images/" scale="tile" scale9grid="15,15,30,30"/>
     <image id="o6fk4" name="btn_joystick_bg.png" path="/images/"/>
     <image id="o6fk5" name="btn_joystick.png" path="/images/"/>
-    <image id="o6fk6" name="btn_speed.png" path="/images/"/>
     <component id="o6fk7" name="joystick.xml" path="/" exported="true"/>
     <component id="o6fk8" name="btn_joystick.xml" path="/images/"/>
     <component id="o6fk9" name="btn_joystick_bg.xml" path="/"/>
+    <component id="oyb7a" name="btn_speed.xml" path="/images/"/>
+    <image id="oyb7f" name="btn_sqeed_up.png" path="/images/"/>
+    <image id="oyb7g" name="btn_sqeed_down.png" path="/images/"/>
+    <image id="oyb7h" name="blue_cross.png" path="/images/" scale="tile" scale9grid="22,22,44,44" duplicatePadding="true"/>
   </resources>
   <publish name=""/>
 </packageDescription>

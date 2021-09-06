@@ -1,12 +1,12 @@
 import { Client } from "colyseus";
-import { Circle, pointInCircle, testCircleCircle, Vector } from "sat"
+import { pointInCircle, Vector } from "sat"
 import { StateHandlerRoom } from "../rooms/stateHandler";
 import { ISnakeData } from "../types";
 import Bean from "./Bean";
 import Config from "./Config";
 import { GAME_START } from "./constants";
 import Snake from "./Snake";
-import { BoundingBox, Bound, createQuadTree, QuadTree } from 'simplequad';
+import { BoundingBox, createQuadTree, QuadTree } from 'simplequad';
 export default class LogicManager {
     public room: StateHandlerRoom;
 
@@ -40,7 +40,7 @@ export default class LogicManager {
     public createBean() {
         for (let i = 0; i < Config.beanSpawnMax; i++) {
             let id = `${i}`;
-            let skin = Math.floor(Math.random() * Config.beanSkinLength + 1);
+            let skin = Math.floor(Math.random() * Config.beanSkinCnt + 1);
             let x = Math.floor(Math.random() * Config.mapWidth);
             let y = Math.floor(Math.random() * Config.mapHeight);
             let pos = new Vector(x, y);
@@ -64,13 +64,13 @@ export default class LogicManager {
     public createSnake() {
         for (let i = 0; i < Config.snakeSpawnCnt; i++) {
             let id = `${i}`;
-            let skinId = Math.floor(Math.random() * Config.beanSkinLength + 1);
+            let skinId = Math.floor(Math.random() * Config.beanSkinCnt + 1);
             let x = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 y = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 pos = new Vector(x, y);
             // let rotation = Math.floor(Math.random() * 360);
             let rotation = 0;
-            let snake = new Snake(id, skinId, pos, Config.initWidth / 2, rotation);
+            let snake = new Snake(id, skinId, pos, Config.snakeBodyRadius / 2, rotation);
             snake.handler = this;
             snake.bot = true;
             this.snakeArr.push(snake);
@@ -86,7 +86,7 @@ export default class LogicManager {
             pos = new Vector(x, y);
         // let rotation = Math.floor(Math.random() * 360);
         let rotation = 0;
-        let snake = new Snake(id, skin, pos, Config.initWidth / 2, rotation);
+        let snake = new Snake(id, skin, pos, Config.snakeBodyRadius / 2, rotation);
         snake.handler = this;
         this.snakeArr.push(snake);
         this.snakeMap[id] = snake;
@@ -125,15 +125,22 @@ export default class LogicManager {
         this.broadcast(GAME_START, {})
         // 开始刷新（每一帧刷新一次）
         this.room.setSimulationInterval(this.update.bind(this), 16);
-        // this.room.clock.setInterval(this.sendUpdates.bind(this), 25);
+        this.room.clock.setInterval(this.sendUpdates.bind(this), 100);
         // setInterval(sendUpdates, 1000 / c.networkUpdateFactor);
+    }
+
+    public update(): void {
+        this.hitTestSnake();
+        this.snakeMove();
+        this.eatBean();
+        this.sendUpdates();
     }
 
     public sendUpdates() {
         let data = this.snakeArr.map((snake) => {
-            let { id, pos, rotation } = snake;
+            let { id, pos, rotation, currentSpeed } = snake;
             return {
-                id, pos, rotation
+                id, pos, rotation, currentSpeed
             }
         })
         this.broadcast("updateSnake", data);
@@ -144,64 +151,10 @@ export default class LogicManager {
         this.room.broadcastAll(type, data);
     }
 
-    public update(): void {
-        this.hitTestSnake();
-        this.snakeMove();
-        this.eatBean();
-        this.sendUpdates();
-    }
-
     public snakeMove(): void {
         this.snakeArr.forEach((snake) => {
             snake.move();
         });
-        // for (let index = 0; index < this.snakeArr.length; index++) {
-        //     let snake = this.snakeArr[index]
-        //     snake.move();
-        //     let hitDis: number = 90 / snake.speedObj["rotation"] * snake.speed + snake.r / 2; // 预测碰撞点
-        //     let hitPos: Object = { x: 0, y: 0 }
-        //     hitPos["x"] = hitDis * Math.cos(snake.rotation * Math.PI / 180) + snake.pos.x
-        //     hitPos["y"] = hitDis * Math.sin(snake.rotation * Math.PI / 180) + snake.pos.y
-        // let hiten: Boolean = false
-        //判断是否快碰撞到边界
-        // if (hitPos["x"] >= Config.mapWidth - snake.r / 2 || hitPos["x"] <= snake.r / 2
-        //     || hitPos["y"] >= Config.mapHeight - snake.r / 2 || hitPos["y"] <= snake.r / 2) {
-        //     snake.reverseRotation()
-        // }
-
-        //判断是否撞倒玩家蛇
-        // if (distance(hitPos["x"], hitPos["y"], this.snakeSelf.x, this.snakeSelf.y) <= this.snakeSelf.width) {
-        //     snake.reverseRotation()
-        //     hiten = true
-        // }
-        // for (let index = 0; index < this.snakeSelf.bodyArr.length; index++) {
-        //     if (hiten) break
-        //     let element = this.snakeSelf.bodyArr[index];
-        //     if (distance(hitPos["x"], hitPos["y"], element.x, element.y) <= element.width) {
-        //         snake.reverseRotation()
-        //         hiten = true
-        //     }
-        // }
-
-        //判断AI之间是否自己碰撞
-        // for (let i = 0; i < this.snakeArr.length; i++) {
-        //     if (hiten) break
-        //     let elementsnake: Snake = this.snakeArr[i];
-        //     if (index == i) continue
-        //     if (distance(hitPos["x"], hitPos["y"], elementsnake.x, elementsnake.y) <= elementsnake.width) {
-        //         snake.reverseRotation()
-        //         hiten = true
-        //     }
-        //     for (let index = 0; index < elementsnake.bodyArr.length; index++) {
-        //         if (hiten) break
-        //         let element = elementsnake.bodyArr[index];
-        //         if (distance(hitPos["x"], hitPos["y"], element.x, element.y) <= element.width) {
-        //             snake.reverseRotation()
-        //             hiten = true
-        //         }
-        //     }
-        // }
-        // }
     }
 
     public removeSnake(snake: Snake) {
@@ -225,18 +178,28 @@ export default class LogicManager {
     public addBean(x: number, y: number): void {// todo 对象池 随机生产
         let len = this.beanArr.length;
         let id = `${len}`;
-        let skin = Math.floor(Math.random() * Config.beanSkinLength + 1);
+        let skin = Math.floor(Math.random() * Config.beanSkinCnt + 1);
         let pos = new Vector(x, y);
         let bean = new Bean(id, pos, Config.beanRadius, skin);
         this.beanArr.push(bean);
         this.beansMap[id] = bean;
+        let bounds: BoundingBox = {
+            x,
+            y,
+            width: Config.beanRadius * 2,
+            height: Config.beanRadius * 2,
+        };
+        let beanBounds = {
+            ...bounds,
+            id
+        }
+        this.beanQuadTree.add(beanBounds);
         this.broadcast("addBean", { id, pos, skin });
     }
 
-    removeBean(bean: Bean) {
-        let { id } = bean;
+    removeBean(bean: Bean, snake: Snake) {
         bean.destroy();
-        this.broadcast("removeBean", { id });
+        this.broadcast("removeBean", { beanId: bean.id, snakeId: snake.id });
     }
 
 
@@ -247,12 +210,14 @@ export default class LogicManager {
             if (snake.alive) {
                 let { pos, width } = snake;
                 let { x, y } = pos;
+                let hitTestDistance = width + 50;
                 let snakeBounds = {
-                    x, y, width, height: width
+                    x, y, width: hitTestDistance, height: hitTestDistance
                 }
                 this.beanQuadTree.query(snakeBounds).forEach((bean) => {
                     let b = this.beansMap[bean['id']];
-                    this.removeBean(b);
+                    snake.eatBean++;
+                    this.removeBean(b, snake);
                     this.beanQuadTree.remove(bean);
                 });
 

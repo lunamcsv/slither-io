@@ -3,9 +3,8 @@ import Config from "../Config";
 import GameManager from "../manager/GameManager";
 export default class Snake extends Laya.Sprite {
     currentSpeed: string = "slow";
-    snakeInitSize: number = 1
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 24
+    snakeLength: number = 0;
     kill: number = 0;
     alive: boolean = true;
     speedX: number;
@@ -18,7 +17,7 @@ export default class Snake extends Laya.Sprite {
     pathArr: Array<IPath> = [];
     eatBean: number = 0;
     bodyBeanNum: number = 6;//吃几颗豆增加一节身体
-    bodyMaxNum: number = 500; // 身体长度上限 500/6 = 30;
+    bodyMaxNum: number = 30; // 身体长度上限
     id: string = "";
     bot: boolean = true;
     head: Laya.Sprite;
@@ -35,7 +34,7 @@ export default class Snake extends Laya.Sprite {
         this.speedY = Config.speedConfig[this.currentSpeed];
         this.skinId = skinId + 100;
         this.visible = false;
-        this.scaleRatio = this.snakeInitSize;
+        this.scaleRatio = Config.defaultScaleRatio;
 
 
         this.width = Config.snakeBodyRadius;
@@ -78,33 +77,29 @@ export default class Snake extends Laya.Sprite {
         }
     }
 
-
+    // curtime: number = Date.now();
     headMove(): void {
         // let angle = Math.floor(this.rotation * Math.PI / 180 * 100) / 100;
-        // if (this.offset.x > 30) {
-        //     this.speedX +=1;
-        // } else if (this.offset.x < -30) {
-        //     this.speedX -=1;
-        // } else {
-        //     this.speedX = Config.speedConfig[this.currentSpeed];
-        // }
-        // if (this.offset.y > 30) {
-        //     this.speedY +=1;
-        // } else if (this.offset.y < -30) {
-        //     this.speedY -=1;
-        // } else {
-        //     this.speedY = Config.speedConfig[this.currentSpeed];
-        // // }
         // let x = Math.floor(this.speedX * Math.floor(Math.cos(angle) * 100) / 100);
         // let y = Math.floor(this.speedY * Math.floor(Math.sin(angle) * 100) / 100);
+
         let posBefore = { x: this.x, y: this.y };
-        let offsetx = 0,offsety=0;
+        // let x = Laya.MathUtil.lerp(0, this.offset.x, 0.5);
+        // let y = Laya.MathUtil.lerp(0, this.offset.y, 0.5);
+        // x = Math.round(x);
+        // y = Math.round(y);
+        // if (this.offset.x > this.speedX) {
+        //     offsetx = this.offset.x > this.speedX ? this.speedX : 0;
+        //     this.offset.x -= this.speedX;
+        // }
         let nextPosX = this.x + this.offset.x;
         let nextPosY = this.y + this.offset.y;
-        if (!this.bot) {
-            console.log(nextPosX,nextPosY);
-        }
-        this.rotation = this.nextRotation;
+        // if (!this.bot) {
+        // console.log(x,y);
+        // }
+        // this.rotation = this.nextRotation;
+        // 对头部进行设置
+        this.head.rotation = this.nextRotation;
         if (!(nextPosX >= Config.mapWidth - this.head.width / 2 || nextPosX <= this.head.width / 2)) {
             this.x = nextPosX;
         } else {
@@ -118,15 +113,23 @@ export default class Snake extends Laya.Sprite {
             this.y = nextPosY;
         } else {
             // this.destroy()
-            if (!this.bot) {
-                console.log("moveOut:", Date.now())
-            }
+            // if (!this.bot) {
+            //     console.log("moveOut:", Date.now())
+            // }
             return;
         }
 
-        let nextAngle = Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x);
+        let nextAngle = Math.floor(Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x) * 100) / 100;
+        // if (!this.bot) {
+        //     console.log("nextAngle:", nextAngle)
+        // }
         for (let index = 1; index <= Config.speedConfig[this.currentSpeed]; index++) {
-            this.pathArr.unshift({ x: index * Math.cos(nextAngle) + posBefore.x, y: index * Math.sin(nextAngle) + posBefore.y })
+            let pathX = index * Math.floor(Math.cos(nextAngle) * 10) / 10 + posBefore.x;
+            let pathY = index * Math.floor(Math.sin(nextAngle) * 10) / 10 + posBefore.y;
+            this.pathArr.unshift({ x: pathX, y: pathY })
+            // if (!this.bot) {
+            //     console.log("pathArr:", pathX, pathY)
+            // }
         }
     }
 
@@ -147,10 +150,9 @@ export default class Snake extends Laya.Sprite {
     snakeScale(ele: Laya.Sprite, eleType: string = "body"): void {
         // todo
         let x = ele.x, y = ele.y;
-        ele.pivot(ele.width / 2, ele.height / 2)
         ele.graphics.clear()
         // ele.loadImage("images/" + eleType + this.skinId + ".png", 0, 0, Config.snakeBodyRadius * this.scaleRatio, Config.snakeBodyRadius * this.scaleRatio)
-        ele.pivot(ele.width / 2, ele.height / 2)
+        // ele.pivot(ele.width / 2, ele.height / 2)
         if (eleType == "body") {
             ele.width = Config.snakeBodyRadius * this.scaleRatio;
             ele.height = Config.snakeBodyRadius * this.scaleRatio;
@@ -158,6 +160,7 @@ export default class Snake extends Laya.Sprite {
             ele.width = ele.width * this.scaleRatio;
             ele.height = ele.height * this.scaleRatio;
         }
+        ele.pivot(ele.width / 2, ele.height / 2)
         ele.pos(x, y)
         Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
@@ -165,7 +168,7 @@ export default class Snake extends Laya.Sprite {
     speedChange(): void {
         let currentSpeed = Config.speedConfig[this.currentSpeed];
         // this.speed = this.currentSpeed == 'slow' ? (this.speed > currentSpeed ? this.speed - 1 : currentSpeed) : (this.speed < currentSpeed ? this.speed + 1 : currentSpeed);
-        this.speedX = this.currentSpeed == 'slow' ? (this.speedX> currentSpeed ? this.speedX- 1 : currentSpeed) : (this.speedX< currentSpeed ? this.speedX+ 1 : currentSpeed);
+        this.speedX = this.currentSpeed == 'slow' ? (this.speedX > currentSpeed ? this.speedX - 1 : currentSpeed) : (this.speedX < currentSpeed ? this.speedX + 1 : currentSpeed);
         this.speedY = this.currentSpeed == 'slow' ? (this.speedY > currentSpeed ? this.speedY - 1 : currentSpeed) : (this.speedY < currentSpeed ? this.speedY + 1 : currentSpeed);
     }
 
@@ -208,8 +211,6 @@ export default class Snake extends Laya.Sprite {
     bodyCheck() {
         if (this.eatBean >= this.bodyBeanNum && this.bodyArr.length < this.bodyMaxNum) {
             let addBodyNum = Math.floor(this.eatBean / this.bodyBeanNum)
-            let x = this.bodyArr[this.bodyArr.length - 1].x
-            let y = this.bodyArr[this.bodyArr.length - 1].y
             let r = this.bodyArr[this.bodyArr.length - 1].rotation
             for (let index = 0; index < addBodyNum; index++) {
                 this.addBody(this.bodySpace * Math.cos(r * Math.PI / 180), this.bodySpace * Math.sin(r * Math.PI / 180), r)
@@ -217,16 +218,17 @@ export default class Snake extends Laya.Sprite {
             for (let index = 0; index < this.bodySpace * addBodyNum; index++) {
                 this.pathArr.push({ x: this.x - index * Math.cos(r * Math.PI / 180), y: this.y - index * Math.sin(r * Math.PI / 180) })
             }
-            this.eatBean = this.eatBean % this.bodyBeanNum
+            this.eatBean = this.eatBean % this.bodyBeanNum;// 剩余未被消化的豆豆
 
             if (this.scaleRatio < 1) { // 折算能量转换长度
-                this.scaleRatio = this.snakeInitSize + (1 - this.snakeInitSize) / this.bodyMaxNum * this.bodyArr.length;
+                this.scaleRatio = Config.defaultScaleRatio + (1 - Config.defaultScaleRatio) / this.bodyMaxNum * this.bodyArr.length;
                 this.bodyArr.forEach(element => {
-                    this.snakeScale(element, "body")
+                    this.snakeScale(element, "body");
                 })
-                this.snakeScale(this)
+                this.snakeScale(this,"head");
+                this.snakeScale(this.head,"head");
             } else {
-                this.scaleRatio = 1
+                this.scaleRatio = 1;
             }
         }
 

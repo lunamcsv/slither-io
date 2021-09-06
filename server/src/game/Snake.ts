@@ -6,10 +6,10 @@ import LogicManager from "./LogicManager";
  * Snake extends laya.display.Sprite
  */
 export default class Snake extends Circle {
-    speedNow: string = "slow"
-    snakeInitSize: number = 1
+    speedUp: boolean = false;
+    currentSpeed: string = "slow";
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 24
+    snakeLength: number = 0
     kill: number = 0;
     alive: boolean = true;
     head: Circle;
@@ -34,9 +34,9 @@ export default class Snake extends Circle {
         this.id = id;
         this.rotation = angle;
         this.curRotation = this.rotation;
-        this.speed = Config.speedConfig[this.speedNow];
+        this.speed = Config.speedConfig[this.currentSpeed];
         this.skin = skin;
-        this.scaleRatio = this.snakeInitSize;
+        this.scaleRatio = Config.defaultScaleRatio;
         this.init();
     }
 
@@ -74,8 +74,8 @@ export default class Snake extends Circle {
 
     headMove(): void {
         let angle = Math.floor(this.rotation * Math.PI / 180 * 100) / 100;
-        let x = Math.floor(this.speed * Math.floor(Math.cos(angle)*100)/100);
-        let y = Math.floor(this.speed * Math.floor(Math.sin(angle)*100)/100);
+        let x = Math.floor(this.speed * Math.floor(Math.cos(angle) * 100) / 100);
+        let y = Math.floor(this.speed * Math.floor(Math.sin(angle) * 100) / 100);
         let nextPosX = this.pos.x + x;
         let nextPosY = this.pos.y + y;
         // if (!this.bot && this.alive) {
@@ -128,12 +128,12 @@ export default class Snake extends Circle {
     snakeScale(ele: Circle): void {
         ele.r = this.r * this.scaleRatio;
         this.bodySpace = Math.floor(this.width / 10 * 8)
-        Config.speedConfig["rotation"] = 4 / this.scaleRatio
+        Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
 
     speedChange(): void {
-        let speed = Config.speedConfig[this.speedNow];
-        this.speed = this.speedNow == 'slow' ? (this.speed > speed ? this.speed - 1 : speed) : (this.speed < speed ? this.speed + 1 : speed);
+        let speed = Config.speedConfig[this.currentSpeed];
+        this.speed = this.currentSpeed == 'slow' ? (this.speed > speed ? this.speed - 1 : speed) : (this.speed < speed ? this.speed + 1 : speed);
     }
 
 
@@ -171,32 +171,33 @@ export default class Snake extends Circle {
     }
 
     bodyCheck() {
-        // if (this.eatBean >= this.bodyBeanNum && this.bodyArr.length < this.bodyMaxNum) {
-        //     let addBodyNum = Math.floor(this.eatBean / this.bodyBeanNum)
-        //     let x = this.bodyArr[this.bodyArr.length - 1].pos.x;
-        //     let y = this.bodyArr[this.bodyArr.length - 1].pos.y;
-        //     let r = this.bodyArr[this.bodyArr.length - 1].rotation
-        //     for (let index = 0; index < addBodyNum; index++) {
-        //         this.addBody(this.bodySpace * Math.cos(r * Math.PI / 180), this.bodySpace * Math.sin(r * Math.PI / 180), r)
-        //     }
-        //     for (let index = 0; index < this.bodySpace * addBodyNum; index++) {
-        //         this.pathArr.push({
-        //             x: this.pos.x - index * Math.cos(r * Math.PI / 180)
-        //             , y: this.pos.y - index * Math.sin(r * Math.PI / 180)
-        //         })
-        //     }
-        //     this.eatBean = this.eatBean % this.bodyBeanNum
+        if (this.eatBean >= this.bodyBeanNum && this.bodyArr.length < this.bodyMaxNum) {
+            // let addBodyNum = Math.floor(this.eatBean / this.bodyBeanNum)
+            let x = this.bodyArr[this.bodyArr.length - 1].pos.x;
+            let y = this.bodyArr[this.bodyArr.length - 1].pos.y;
+            // let r = this.bodyArr[this.bodyArr.length - 1].rotation
+            // for (let index = 0; index < addBodyNum; index++) {
+                // this.addBody(this.bodySpace * Math.cos(r * Math.PI / 180), this.bodySpace * Math.sin(r * Math.PI / 180), r)
+                this.addBody(x, y, Config.snakeBodyRadius)
+            // }
+            // for (let index = 0; index < this.bodySpace * addBodyNum; index++) {
+            //     this.pathArr.push({
+            //         x: this.pos.x - index * Math.cos(r * Math.PI / 180)
+            //         , y: this.pos.y - index * Math.sin(r * Math.PI / 180)
+            //     })
+            // }
+            this.eatBean = this.eatBean % this.bodyBeanNum
 
-        //     if (this.scaleRatio < 1) {
-        //         this.scaleRatio = this.snakeInitSize + (1 - this.snakeInitSize) / this.bodyMaxNum * this.bodyArr.length
-        //         this.bodyArr.forEach(element => {
-        //             this.snakeScale(element, "body")
-        //         })
-        //         this.snakeScale(this)
-        //     } else {
-        //         this.scaleRatio = 1
-        //     }
-        // }
+            if (this.scaleRatio < 1) {
+                this.scaleRatio = Config.defaultScaleRatio + (1 - Config.defaultScaleRatio) / this.bodyMaxNum * this.bodyArr.length
+                this.bodyArr.forEach(element => {
+                    this.snakeScale(element);
+                })
+                this.snakeScale(this);
+            } else {
+                this.scaleRatio = 1
+            }
+        }
 
     }
 
@@ -210,6 +211,7 @@ export default class Snake extends Circle {
 
     destroy() {
         this.alive = false;
+        this.eatBean = 0;
         this.handler.removeSnake(this);
         // game.addBean(game.beanOrder, this.pos.x, this.pos.y);
         // this.visible = false;

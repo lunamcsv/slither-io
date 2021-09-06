@@ -2,7 +2,7 @@ import Snake from "./Snake"
 export default class Bean extends Laya.Sprite {
     skin: number
     orderNum: number
-
+    alive: boolean = true;
     haveEaten: boolean = false
     eatenTarget: Snake
     speed: number = 2
@@ -14,6 +14,7 @@ export default class Bean extends Laya.Sprite {
     constructor(
         id: string, skin: number, x: number, y: number) {
         super();
+        this.alive = true;
         this.id = id;
         this.skin = skin
         this.zOrder = 0
@@ -35,6 +36,15 @@ export default class Bean extends Laya.Sprite {
     }
 
     destroy() {
-        this.visible = false;
+
+    }
+
+    hide(snake: Snake) {
+        Laya.Tween.to(this, { x: snake.x, y: snake.y, scaleX: 0, scaleY: 0, alpha: 0 }, 100, null, Laya.Handler.create(this, this.hideComplete));
+    }
+
+    hideComplete() {
+        this.alive = false;
+        // this.visible = false;
     }
 }

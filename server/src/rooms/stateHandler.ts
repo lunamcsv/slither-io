@@ -1,7 +1,6 @@
 import { Room, Client } from "colyseus";
 import { Schema, type, MapSchema } from "@colyseus/schema";
 import LogicManager from "../game/LogicManager";
-import { GAME_START } from "../game/constants";
 
 // export class Player extends Schema {
 //     @type("number")
@@ -50,19 +49,19 @@ export class StateHandlerRoom extends Room {
         // });
         this.onMessage("create_role", (client) => {
             // 根据用户信息设置角色皮肤
-            console.log("create_role:",client.sessionId)
+            console.log("create_role:", client.sessionId)
             if (!this.roleMap[client.sessionId]) {
                 this.roleMap[client.sessionId] = client;
-                this.LogicManager.createRoleSnake({id:client.sessionId});
+                this.LogicManager.createRoleSnake({ id: client.sessionId });
             }
         })
 
-        this.onMessage("updateRotation", (client,data) => {
-            // console.log(client.sessionId)
-
-            // this.roleMap[client.sessionId] = client;
+        this.onMessage("updateRotation", (client, data) => {
             this.LogicManager.snakeMap[client.sessionId].curRotation = data.rotation;
+        })
 
+        this.onMessage("updateSpeed", (client, data) => {
+            this.LogicManager.snakeMap[client.sessionId].currentSpeed = data.onSpeedUp ? "fast" : "slow";
         })
     }
 
@@ -83,7 +82,7 @@ export class StateHandlerRoom extends Room {
         if (!this.isStart) {
             this.LogicManager.startGame();
             this.isStart = true;
-        }else{
+        } else {
             // this.broadcast(GAME_START, {}); // 通知开始游戏
         }
         this.LogicManager.initConfig(client);
@@ -105,7 +104,7 @@ export class StateHandlerRoom extends Room {
         if (!this.roleMap[client.sessionId]) {
             delete this.roleMap[client.sessionId];
         }
-        if(Object.keys(this.roleMap).length == 0){
+        if (Object.keys(this.roleMap).length == 0) {
             console.log("房间没有用户了")
             this.LogicManager.destroy();
         }

@@ -5,8 +5,8 @@
                 "h": 64,
                 "idx": 0,
                 "w": 64,
-                "x": 117,
-                "y": 0
+                "x": 0,
+                "y": 84
             },
             "sourceSize": {
                 "h": 64,
@@ -22,8 +22,8 @@
                 "h": 63,
                 "idx": 0,
                 "w": 64,
-                "x": 117,
-                "y": 65
+                "x": 65,
+                "y": 84
             },
             "sourceSize": {
                 "h": 64,
@@ -56,8 +56,76 @@
                 "h": 24,
                 "idx": 0,
                 "w": 24,
+                "x": 65,
+                "y": 148
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
                 "x": 0,
-                "y": 84
+                "y": 0
+            }
+        },
+        "bean_10.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 0,
+                "y": 149
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_11.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 25,
+                "y": 149
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_12.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 90,
+                "y": 148
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_13.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 115,
+                "y": 148
             },
             "sourceSize": {
                 "h": 24,
@@ -73,8 +141,8 @@
                 "h": 24,
                 "idx": 0,
                 "w": 24,
-                "x": 25,
-                "y": 84
+                "x": 117,
+                "y": 0
             },
             "sourceSize": {
                 "h": 24,
@@ -90,8 +158,110 @@
                 "h": 24,
                 "idx": 0,
                 "w": 24,
-                "x": 50,
-                "y": 84
+                "x": 117,
+                "y": 25
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_4.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 117,
+                "y": 50
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_5.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 130,
+                "y": 75
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_6.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 130,
+                "y": 100
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_7.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 140,
+                "y": 125
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_8.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 140,
+                "y": 150
+            },
+            "sourceSize": {
+                "h": 24,
+                "w": 24
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "bean_9.png": {
+            "frame": {
+                "h": 24,
+                "idx": 0,
+                "w": 24,
+                "x": 142,
+                "y": 0
             },
             "sourceSize": {
                 "h": 24,

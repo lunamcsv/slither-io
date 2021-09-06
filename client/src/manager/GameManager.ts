@@ -3,7 +3,7 @@ import Snake from "../script/Snake"
 import Config from "../Config";
 import GameConfig from "../GameConfig";
 import Joystick from "../fgui/extension/Joystick";
-import { IBase, IBeanData, IGlobalData,  ISnakeData, IStatus } from "../../types/index";
+import { IBase, IBeanData, IEatBean, IGlobalData, ISnakeData, IStatus } from "../../types/index";
 declare const Colyseus: any;
 export default class GameManager {
 
@@ -15,14 +15,13 @@ export default class GameManager {
     beanOrder: number = 0
     beans: Object = {}
     snakeSelf: Snake
-    beanRandomTimer: any
-    SnakeAINum: number = 5
     snakeArr: Array<Snake> = []
     snakeMap: { [key: string]: Snake } = {};
     beanMap: { [key: string]: Bean } = {};
 
     battleView: fgui.GComponent;
     battleMap: Laya.Sprite;
+    btnSpeed: fgui.GButton;
 
     private static _inst: GameManager;
     public static get inst(): GameManager {
@@ -85,25 +84,31 @@ export default class GameManager {
         // console.log("addSnake:", data,this.snakeMap);
     }
 
-    removeBean(data: IBase): void {
-        let id = data.id;
-        this.beanMap[id].destroy();
+    removeBean(data: IEatBean): void {
+        let snake = data.snakeId;
+        let bean = data.beanId;
+
+        this.beanMap[bean].hide(this.snakeMap[snake]);
         // todo 对象池管理
     }
 
     updateSnake(data: IStatus[]): void {
         data.forEach(element => {
             let id = element.id;
-            let rotation = element.rotation;
             let snake = this.snakeMap[id];
             if (snake && snake.alive) {
+                let rotation = element.rotation;
+                let currentSpeed = element.currentSpeed;
                 snake.curRotation = rotation;
-                snake.offset.x = element.pos.x - snake.x; // 与服务器的偏差值
-                snake.offset.y = element.pos.y - snake.y;
+                snake.currentSpeed = currentSpeed;
+                let offsetx = element.pos.x - snake.x;
+                let offsety = element.pos.y - snake.y;
+                snake.offset.x = offsetx; // 与服务器的偏差值
+                snake.offset.y = offsety;
                 // snake.move();
-                if(!snake.bot){
-                    console.log(snake.offset)
-                }
+                // if (!snake.bot) {
+                //     console.log(snake.offset.x,offsetx);
+                // }
             }
         });
     }
@@ -140,17 +145,26 @@ export default class GameManager {
     }
 
     init(): void {
-        this.addEvent();
         this.battleView = fgui.UIPackage.createObject("Slither", "Main") as fairygui.GComponent;
         this.battleView.makeFullScreen();
         fgui.GRoot.inst.addChild(this.battleView);
+        this.addEvent();
         this.initSocket();
         this.startGame();
     }
 
-
+    onSpeedUp: boolean = false;
     addEvent() {
         Laya.stage.on(Joystick.JoystickMoving, this, this.onTouchMove);
+        this.btnSpeed = this.battleView.getChild("btn_speed").asButton;
+        this.btnSpeed.on(Laya.Event.MOUSE_DOWN, this, this.changeSpeed);
+        this.btnSpeed.on(Laya.Event.MOUSE_UP, this, this.changeSpeed);
+    }
+
+    changeSpeed() {
+        this.onSpeedUp = !this.onSpeedUp;
+        let onSpeedUp = this.onSpeedUp;
+        this.room.send("updateSpeed", { id: this.room.sessionId, onSpeedUp });
     }
 
     onTouchMove(evt: { [key: string]: any }): void {
@@ -189,8 +203,8 @@ export default class GameManager {
 
     snakeMove(): void {
         for (let index = 0; index < this.snakeArr.length; index++) {
-            let snakeAI = this.snakeArr[index]
-            snakeAI.move()
+            let snake = this.snakeArr[index];
+            snake.move();
         }
     }
 
@@ -198,7 +212,7 @@ export default class GameManager {
     //做地图相对移动，以便能让玩家的蛇始终居中
     mapMove(): void {
         if (!this.snakeSelf) { return };
-        let mapScale = this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio < 0.7 ? 0.7 : this.snakeSelf.snakeInitSize / this.snakeSelf.scaleRatio
+        let mapScale = Config.defaultScaleRatio / this.snakeSelf.scaleRatio < 0.7 ? 0.7 : Config.defaultScaleRatio / this.snakeSelf.scaleRatio
         let x = -1 * (this.snakeSelf.x + this.snakeSelf.width / 2) * mapScale + GameConfig.width / 2,
             y = -1 * (this.snakeSelf.y + this.snakeSelf.height / 2) * mapScale + GameConfig.height / 2;
         this.battleMap.x = x;
