@@ -68,9 +68,9 @@ export default class LogicManager {
             let x = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 y = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 pos = new Vector(x, y);
-            // let rotation = Math.floor(Math.random() * 360);
-            let rotation = 0;
-            let snake = new Snake(id, skinId, pos, Config.snakeBodyRadius / 2, rotation);
+            let rotation = Math.floor(Math.random() * ( 360) -180 );
+            // let rotation = 0;
+            let snake = new Snake(id, skinId, pos, Config.snakeBodyRadius, rotation);
             snake.handler = this;
             snake.bot = true;
             this.snakeArr.push(snake);
@@ -86,7 +86,7 @@ export default class LogicManager {
             pos = new Vector(x, y);
         // let rotation = Math.floor(Math.random() * 360);
         let rotation = 0;
-        let snake = new Snake(id, skin, pos, Config.snakeBodyRadius / 2, rotation);
+        let snake = new Snake(id, skin, pos, Config.snakeBodyRadius, rotation);
         snake.handler = this;
         this.snakeArr.push(snake);
         this.snakeMap[id] = snake;

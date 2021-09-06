@@ -9,7 +9,7 @@ export default class Snake extends Circle {
     speedUp: boolean = false;
     currentSpeed: string = "slow";
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 0
+    snakeLength: number = 60
     kill: number = 0;
     alive: boolean = true;
     head: Circle;
@@ -44,30 +44,28 @@ export default class Snake extends Circle {
         this.nextRotation = this.rotation;
         this.snakeScale(this);
         this.alive = true;
-        this.bodySpace = Math.floor(this.width / 10 * 8); // 间隔0.4倍
+        this.bodySpace = Math.floor(Config.snakeBodyRadius * this.scaleRatio  / 10 * 8); // 间隔0.4倍
         for (let index = 1; index <= this.getBodyNum(); index++) {
             this.addBody(this.pos.x - index * this.bodySpace, this.pos.y, this.rotation)
         }
         for (let index = 0; index < this.bodySpace * this.getBodyNum(); index++) {
             this.pathArr.push({
-                x: this.pos.x - index
-                , y: this.pos.y
+                x: this.pos.x - index, y: this.pos.y
             })
         }
     }
 
     get width(): number {
-        return this.r * 2;
+        return this.r * 2 * this.scaleRatio;
     }
 
     move(): void {
         if (this.alive) {
-            // this.bodySpace = Math.floor(this.width / 10 * 8)
             this.headMove()
             this.bodyMove()
             this.speedChange()
             this.rotationChange()
-            // this.bodyCheck()
+            this.bodyCheck()
             // console.log(this.pos);
         }
     }
@@ -126,8 +124,7 @@ export default class Snake extends Circle {
     }
 
     snakeScale(ele: Circle): void {
-        ele.r = this.r * this.scaleRatio;
-        this.bodySpace = Math.floor(this.width / 10 * 8)
+        ele.r = Config.snakeBodyRadius * this.scaleRatio;
         Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
 
@@ -141,12 +138,14 @@ export default class Snake extends Circle {
         if (this.curRotation == this.nextRotation) {
             return;
         }
-        let perRotation = Math.abs(this.curRotation - this.nextRotation) < Config.speedConfig['rotation'] ? Math.abs(this.curRotation - this.nextRotation) : Config.speedConfig['rotation']
+        let rotationSpan = Math.abs(this.curRotation - this.nextRotation); // 转角差值
+        let rotation = Config.speedConfig['rotation'];
+        let perRotation = rotationSpan < rotation ? rotationSpan : rotation;
         if (this.curRotation < -0 && this.nextRotation > 0 && Math.abs(this.curRotation) + this.nextRotation > 180) {
-            perRotation = (180 - this.nextRotation) + (180 + this.curRotation) < Config.speedConfig['rotation'] ? (180 - this.nextRotation) + (180 + this.curRotation) : Config.speedConfig['rotation']
+            perRotation = (180 - this.nextRotation) + (180 + this.curRotation) < rotation ? (180 - this.nextRotation) + (180 + this.curRotation) : rotation
             this.nextRotation += perRotation
         } else {
-            this.nextRotation += this.curRotation > this.nextRotation && Math.abs(this.curRotation - this.nextRotation) <= 180 ? perRotation : -perRotation
+            this.nextRotation += this.curRotation > this.nextRotation && rotationSpan <= 180 ? perRotation : -perRotation
         }
         this.nextRotation = Math.abs(this.nextRotation) > 180 ? (this.nextRotation > 0 ? this.nextRotation - 360 : this.nextRotation + 360) : this.nextRotation
     }
@@ -177,8 +176,8 @@ export default class Snake extends Circle {
             let y = this.bodyArr[this.bodyArr.length - 1].pos.y;
             // let r = this.bodyArr[this.bodyArr.length - 1].rotation
             // for (let index = 0; index < addBodyNum; index++) {
-                // this.addBody(this.bodySpace * Math.cos(r * Math.PI / 180), this.bodySpace * Math.sin(r * Math.PI / 180), r)
-                this.addBody(x, y, Config.snakeBodyRadius)
+            // this.addBody(this.bodySpace * Math.cos(r * Math.PI / 180), this.bodySpace * Math.sin(r * Math.PI / 180), r)
+            this.addBody(x, y, Config.snakeBodyRadius)
             // }
             // for (let index = 0; index < this.bodySpace * addBodyNum; index++) {
             //     this.pathArr.push({
@@ -195,8 +194,9 @@ export default class Snake extends Circle {
                 })
                 this.snakeScale(this);
             } else {
-                this.scaleRatio = 1
+                this.scaleRatio = 1;
             }
+            this.bodySpace = Math.floor(Config.snakeBodyRadius * this.scaleRatio / 10 * 8)
         }
 
     }

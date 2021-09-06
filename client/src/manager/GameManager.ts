@@ -40,7 +40,7 @@ export default class GameManager {
     initSocket() {
         let client = new Colyseus.Client("ws://localhost:2567/");
         client.joinOrCreate("state_handler").then(room => {
-            console.log(room.sessionId);
+            // console.log(room.sessionId);
             this.room = room;
             this.room.onMessage("cmd", (message: any) => {
                 this.handleMsg(message.type, message.data);
@@ -118,7 +118,7 @@ export default class GameManager {
     }
 
     initGlobalConfig(data: IGlobalData): void {
-        console.log(data);
+        // console.log(data);
         let snakes = data.snakes;
         let beans = data.beans;
         snakes.forEach(element => {
@@ -126,7 +126,6 @@ export default class GameManager {
                 let id = element.id;
                 let pos = element.pos;
                 let rotation = element.rotation;
-                console.log(rotation);
                 let snake = new Snake(id, 1, pos.x, pos.y, rotation);
                 this.snakeMap[id] = snake;
                 if (this.room.sessionId == id) {

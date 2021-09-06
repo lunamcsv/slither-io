@@ -179,7 +179,7 @@ var polea = (() => {
   };
   Config.mapWidth = 5e3;
   Config.mapHeight = 5e3;
-  Config.defaultScaleRatio = 0.5;
+  Config.defaultScaleRatio = 1;
   Config.snakeBodyRadius = 64;
   Config.speedConfig = { "slow": 6, "fast": 10, "rotation": 10 };
 
@@ -207,22 +207,16 @@ var polea = (() => {
       this.speedX = Config.speedConfig[this.currentSpeed];
       this.speedY = Config.speedConfig[this.currentSpeed];
       this.skinId = skinId + 100;
-      this.visible = false;
       this.scaleRatio = Config.defaultScaleRatio;
-      this.width = Config.snakeBodyRadius;
-      this.height = Config.snakeBodyRadius;
+      this.originWidth = this.width;
+      this.originHeight = this.height;
       this.zOrder = 11e3;
-      this.pivot(this.width / 2, this.height / 2);
       this.pos(x, y);
-      this.head = new Laya.Sprite();
-      this.head.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded));
+      this.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded));
     }
     loaded() {
-      this.addChild(this.head);
-      this.head.pos(this.head.width / 2, this.height / 2);
-      this.snakeScale(this.head, "head");
-      this.visible = true;
-      this.bodySpace = Math.floor(this.width / 10 * 8);
+      this.snakeScale(this, "head");
+      this.bodySpace = Math.floor(this.scaleRatio * Config.snakeBodyRadius / 10 * 8);
       for (let index = 1; index <= this.getBodyNum(); index++) {
         this.addBody(this.x - index * this.bodySpace, this.y, this.rotation);
       }
@@ -246,8 +240,8 @@ var polea = (() => {
       let posBefore = { x: this.x, y: this.y };
       let nextPosX = this.x + this.offset.x;
       let nextPosY = this.y + this.offset.y;
-      this.head.rotation = this.nextRotation;
-      if (!(nextPosX >= Config.mapWidth - this.head.width / 2 || nextPosX <= this.head.width / 2)) {
+      this.rotation = this.nextRotation;
+      if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
         this.x = nextPosX;
       } else {
         if (!this.bot) {
@@ -255,9 +249,13 @@ var polea = (() => {
         }
         return;
       }
-      if (!(nextPosY >= Config.mapHeight - this.head.width / 2 || nextPosY <= this.head.width / 2)) {
+      if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
         this.y = nextPosY;
       } else {
+        this.destroy();
+        if (!this.bot) {
+          console.log("moveOut:", Date.now());
+        }
         return;
       }
       let nextAngle = Math.floor(Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x) * 100) / 100;
@@ -280,17 +278,14 @@ var polea = (() => {
       }
     }
     snakeScale(ele, eleType = "body") {
-      let x = ele.x, y = ele.y;
-      ele.graphics.clear();
       if (eleType == "body") {
         ele.width = Config.snakeBodyRadius * this.scaleRatio;
         ele.height = Config.snakeBodyRadius * this.scaleRatio;
       } else {
-        ele.width = ele.width * this.scaleRatio;
-        ele.height = ele.height * this.scaleRatio;
+        ele.width = this.originWidth * this.scaleRatio;
+        ele.height = this.originHeight * this.scaleRatio;
       }
       ele.pivot(ele.width / 2, ele.height / 2);
-      ele.pos(x, y);
       Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
     speedChange() {
@@ -316,16 +311,12 @@ var polea = (() => {
     addBody(x, y, r) {
       let body = new Laya.Sprite();
       let zOrder = this.zOrder - this.bodyArr.length - 1;
-      body.visible = false;
-      body.alpha = 0;
       body.zOrder = zOrder;
       body.loadImage(`assets/${this.skinId}_body_${zOrder % 2 + 1}.png`, Laya.Handler.create(this, () => {
         this.snakeScale(body, "body");
         body.pos(x, y);
         body.rotation = r;
         GameManager.inst.battleMap.addChild(body);
-        body.visible = true;
-        body.alpha = 1;
       }));
       this.bodyArr.push(body);
     }
@@ -346,10 +337,10 @@ var polea = (() => {
             this.snakeScale(element, "body");
           });
           this.snakeScale(this, "head");
-          this.snakeScale(this.head, "head");
         } else {
           this.scaleRatio = 1;
         }
+        this.bodySpace = Math.floor(Config.snakeBodyRadius * this.scaleRatio / 10 * 8);
       }
     }
     getBodyNum() {
@@ -387,7 +378,6 @@ var polea = (() => {
     initSocket() {
       let client = new Colyseus.Client("ws://localhost:2567/");
       client.joinOrCreate("state_handler").then((room) => {
-        console.log(room.sessionId);
         this.room = room;
         this.room.onMessage("cmd", (message) => {
           this.handleMsg(message.type, message.data);
@@ -449,7 +439,6 @@ var polea = (() => {
       this.snakeMap[data.id].destroy();
     }
     initGlobalConfig(data) {
-      console.log(data);
       let snakes = data.snakes;
       let beans = data.beans;
       snakes.forEach((element) => {
@@ -457,7 +446,6 @@ var polea = (() => {
           let id = element.id;
           let pos = element.pos;
           let rotation = element.rotation;
-          console.log(rotation);
           let snake = new Snake(id, 1, pos.x, pos.y, rotation);
           this.snakeMap[id] = snake;
           if (this.room.sessionId == id) {

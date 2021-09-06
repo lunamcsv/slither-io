@@ -22,6 +22,8 @@ export default class Snake extends Laya.Sprite {
     bot: boolean = true;
     head: Laya.Sprite;
     offset: Laya.Point = new Laya.Point();
+    originWidth: number;
+    originHeight: number;
 
     constructor(id: string, skinId: number, x: number, y: number, angle: number = 0) {
         super()
@@ -33,42 +35,29 @@ export default class Snake extends Laya.Sprite {
         this.speedX = Config.speedConfig[this.currentSpeed];
         this.speedY = Config.speedConfig[this.currentSpeed];
         this.skinId = skinId + 100;
-        this.visible = false;
         this.scaleRatio = Config.defaultScaleRatio;
-
-
-        this.width = Config.snakeBodyRadius;
-        this.height = Config.snakeBodyRadius;
+        this.originWidth = this.width;
+        this.originHeight = this.height;
         this.zOrder = 11000
-        this.pivot(this.width / 2, this.height / 2);
         this.pos(x, y)
-
-        this.head = new Laya.Sprite();
-        this.head.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded))
-        // this.head = this.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded, [x, y]))
+        this.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded))
     }
 
     loaded(): void {
-        this.addChild(this.head);
-        this.head.pos(this.head.width / 2, this.height / 2);
-        this.snakeScale(this.head, "head");
-        this.visible = true
-
-        this.bodySpace = Math.floor(this.width / 10 * 8)
+        this.snakeScale(this, "head");
+        this.bodySpace = Math.floor(this.scaleRatio * Config.snakeBodyRadius / 10 * 8)
         for (let index = 1; index <= this.getBodyNum(); index++) {
             this.addBody(this.x - index * this.bodySpace, this.y, this.rotation)
         }
         for (let index = 0; index < this.bodySpace * this.getBodyNum(); index++) {
             this.pathArr.push({
-                x: this.x - index
-                , y: this.y
+                x: this.x - index, y: this.y
             })
         }
     }
 
     move(): void {
         if (this.alive) {
-            // this.bodySpace = Math.floor(this.width / 10 * 8)
             this.headMove()
             this.bodyMove()
             this.speedChange()
@@ -94,13 +83,8 @@ export default class Snake extends Laya.Sprite {
         // }
         let nextPosX = this.x + this.offset.x;
         let nextPosY = this.y + this.offset.y;
-        // if (!this.bot) {
-        // console.log(x,y);
-        // }
-        // this.rotation = this.nextRotation;
-        // 对头部进行设置
-        this.head.rotation = this.nextRotation;
-        if (!(nextPosX >= Config.mapWidth - this.head.width / 2 || nextPosX <= this.head.width / 2)) {
+        this.rotation = this.nextRotation;
+        if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
             this.x = nextPosX;
         } else {
             // this.destroy()
@@ -109,13 +93,13 @@ export default class Snake extends Laya.Sprite {
             }
             return;
         }
-        if (!(nextPosY >= Config.mapHeight - this.head.width / 2 || nextPosY <= this.head.width / 2)) {
+        if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
             this.y = nextPosY;
         } else {
-            // this.destroy()
-            // if (!this.bot) {
-            //     console.log("moveOut:", Date.now())
-            // }
+            this.destroy()
+            if (!this.bot) {
+                console.log("moveOut:", Date.now())
+            }
             return;
         }
 
@@ -148,20 +132,14 @@ export default class Snake extends Laya.Sprite {
     }
 
     snakeScale(ele: Laya.Sprite, eleType: string = "body"): void {
-        // todo
-        let x = ele.x, y = ele.y;
-        ele.graphics.clear()
-        // ele.loadImage("images/" + eleType + this.skinId + ".png", 0, 0, Config.snakeBodyRadius * this.scaleRatio, Config.snakeBodyRadius * this.scaleRatio)
-        // ele.pivot(ele.width / 2, ele.height / 2)
         if (eleType == "body") {
             ele.width = Config.snakeBodyRadius * this.scaleRatio;
             ele.height = Config.snakeBodyRadius * this.scaleRatio;
         } else {
-            ele.width = ele.width * this.scaleRatio;
-            ele.height = ele.height * this.scaleRatio;
+            ele.width = this.originWidth * this.scaleRatio;
+            ele.height = this.originHeight * this.scaleRatio;
         }
         ele.pivot(ele.width / 2, ele.height / 2)
-        ele.pos(x, y)
         Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
 
@@ -174,7 +152,7 @@ export default class Snake extends Laya.Sprite {
 
     rotationChange(): void {
         if (this.curRotation == this.nextRotation) {
-            return
+            return;
         }
         let rotationSpan = Math.abs(this.curRotation - this.nextRotation); // 转角差值
         let rotation = Config.speedConfig['rotation'];
@@ -191,18 +169,12 @@ export default class Snake extends Laya.Sprite {
     addBody(x: number, y: number, r: number): void {
         let body: Laya.Sprite = new Laya.Sprite();
         let zOrder = this.zOrder - this.bodyArr.length - 1;
-        body.visible = false;
-        body.alpha = 0;
         body.zOrder = zOrder;
         body.loadImage(`assets/${this.skinId}_body_${zOrder % 2 + 1}.png`, Laya.Handler.create(this, () => {
             this.snakeScale(body, "body")
             body.pos(x, y)
-            body.rotation = r
-
+            body.rotation = r;
             GameManager.inst.battleMap.addChild(body)
-
-            body.visible = true
-            body.alpha = 1
         }))
 
         this.bodyArr.push(body)
@@ -225,11 +197,11 @@ export default class Snake extends Laya.Sprite {
                 this.bodyArr.forEach(element => {
                     this.snakeScale(element, "body");
                 })
-                this.snakeScale(this,"head");
-                this.snakeScale(this.head,"head");
+                this.snakeScale(this, "head");
             } else {
                 this.scaleRatio = 1;
             }
+            this.bodySpace = Math.floor(Config.snakeBodyRadius * this.scaleRatio / 10 * 8)
         }
 
     }
