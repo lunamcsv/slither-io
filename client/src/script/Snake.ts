@@ -98,7 +98,7 @@ export default class Snake extends Laya.Sprite {
         // let x = Math.floor(this.speedX * Math.floor(Math.cos(angle) * 100) / 100);
         // let y = Math.floor(this.speedY * Math.floor(Math.sin(angle) * 100) / 100);
         let posBefore = { x: this.x, y: this.y };
-
+        let offsetx = 0,offsety=0;
         let nextPosX = this.x + this.offset.x;
         let nextPosY = this.y + this.offset.y;
         if (!this.bot) {

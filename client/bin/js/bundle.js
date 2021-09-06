@@ -237,6 +237,7 @@ var polea = (() => {
     }
     headMove() {
       let posBefore = { x: this.x, y: this.y };
+      let offsetx = 0, offsety = 0;
       let nextPosX = this.x + this.offset.x;
       let nextPosY = this.y + this.offset.y;
       if (!this.bot) {
