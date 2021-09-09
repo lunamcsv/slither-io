@@ -61,6 +61,8 @@ export class StateHandlerRoom extends Room {
         })
 
         this.onMessage("updateSpeed", (client, data) => {
+            
+            console.log(data.onSpeedUp);
             this.LogicManager.snakeMap[client.sessionId].currentSpeed = data.onSpeedUp ? "fast" : "slow";
         })
     }

@@ -16,7 +16,7 @@ var polea = (() => {
   GameConfig.startScene = "Main/Main.scene";
   GameConfig.sceneRoot = "";
   GameConfig.debug = false;
-  GameConfig.stat = true;
+  GameConfig.stat = false;
   GameConfig.physicsDebug = false;
   GameConfig.exportSceneToJson = true;
   GameConfig.init();
@@ -179,16 +179,16 @@ var polea = (() => {
   };
   Config.mapWidth = 5e3;
   Config.mapHeight = 5e3;
-  Config.defaultScaleRatio = 1;
+  Config.defaultScaleRatio = 0.5;
   Config.snakeBodyRadius = 64;
-  Config.speedConfig = { "slow": 6, "fast": 10, "rotation": 10 };
+  Config.speedConfig = { "slow": 10, "fast": 20, "rotation": 10 };
 
   // src/script/Snake.ts
   var Snake = class extends Laya.Sprite {
     constructor(id, skinId, x, y, angle = 0) {
       super();
       this.currentSpeed = "slow";
-      this.snakeLength = 0;
+      this.snakeLength = 18;
       this.kill = 0;
       this.alive = true;
       this.bodyArr = [];
@@ -208,24 +208,48 @@ var polea = (() => {
       this.speedY = Config.speedConfig[this.currentSpeed];
       this.skinId = skinId + 100;
       this.scaleRatio = Config.defaultScaleRatio;
-      this.originWidth = this.width;
-      this.originHeight = this.height;
       this.zOrder = 11e3;
       this.pos(x, y);
-      this.loadImage(`assets/${this.skinId}_head.png`, Laya.Handler.create(this, this.loaded));
+      this.loaded();
+      this.addHead();
+      this.addDefend();
     }
     loaded() {
+      this.width = Config.snakeBodyRadius;
+      this.height = Config.snakeBodyRadius;
       this.snakeScale(this, "head");
       this.bodySpace = Math.floor(this.scaleRatio * Config.snakeBodyRadius / 10 * 8);
       for (let index = 1; index <= this.getBodyNum(); index++) {
         this.addBody(this.x - index * this.bodySpace, this.y, this.rotation);
       }
-      for (let index = 0; index < this.bodySpace * this.getBodyNum(); index++) {
-        this.pathArr.push({
-          x: this.x - index,
-          y: this.y
-        });
-      }
+    }
+    addHead() {
+      this.head = new Laya.Sprite();
+      this.head.loadImage(`assets/101_body_1.png`);
+      this.head.x = this.width / 2;
+      this.head.y = this.height / 2;
+      this.head.pivot(this.head.width / 2, this.head.height / 2);
+      this.addChild(this.head);
+      let txt = new Laya.Text();
+      txt.text = "\u6570\u636E\u6B63\u5728\u52A0\u8F7D\u4E2D";
+      txt.color = "#6C6C6C";
+      txt.fontSize = 20 * Laya.Browser.pixelRatio;
+      txt.pos(-txt.width / 2.5, -70);
+      this.addChild(txt);
+    }
+    addDefend() {
+      this.defend = new Laya.Sprite();
+      this.defend.loadImage(`assets/defend.png`);
+      this.defend.x = this.width / 2;
+      this.defend.y = this.height / 2;
+      this.defend.pivot(this.defend.width / 2, this.defend.height / 2);
+      this.addChild(this.defend);
+    }
+    showDefend() {
+      this.defend.visible = true;
+    }
+    hideDefend() {
+      this.defend.visible = false;
     }
     move() {
       if (this.alive) {
@@ -240,51 +264,37 @@ var polea = (() => {
       let posBefore = { x: this.x, y: this.y };
       let nextPosX = this.x + this.offset.x;
       let nextPosY = this.y + this.offset.y;
-      this.rotation = this.nextRotation;
       if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
         this.x = nextPosX;
       } else {
-        if (!this.bot) {
-          console.log("moveOut:", Date.now());
-        }
         return;
       }
       if (!(nextPosY >= Config.mapHeight - this.width / 2 || nextPosY <= this.width / 2)) {
         this.y = nextPosY;
       } else {
-        this.destroy();
-        if (!this.bot) {
-          console.log("moveOut:", Date.now());
-        }
         return;
       }
       let nextAngle = Math.floor(Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x) * 100) / 100;
-      for (let index = 1; index <= Config.speedConfig[this.currentSpeed]; index++) {
-        let pathX = index * Math.floor(Math.cos(nextAngle) * 10) / 10 + posBefore.x;
-        let pathY = index * Math.floor(Math.sin(nextAngle) * 10) / 10 + posBefore.y;
-        this.pathArr.unshift({ x: pathX, y: pathY });
+      let pathX = Math.floor(Math.cos(nextAngle) * 10) / 10 * this.offset.x;
+      let pathY = Math.floor(Math.sin(nextAngle) * 10) / 10 * this.offset.y;
+      for (let index = 0; index < this.bodyArr.length; index++) {
+        this.pathArr.push({ x: pathX, y: pathY });
       }
+      this.offset.x = 0;
+      this.offset.y = 0;
     }
     bodyMove() {
+      console.log(JSON.stringify(this.pathArr));
       for (let index = 0; index < this.bodyArr.length; index++) {
         let element = this.bodyArr[index];
-        let path = this.pathArr[(index + 1) * this.bodySpace];
-        if (path) {
-          element.pos(path["x"], path["y"]);
-        }
-        if (this.pathArr.length > this.bodyArr.length * (1 + this.bodySpace)) {
-          this.pathArr.pop();
-        }
+        let path = this.pathArr[index];
+        element.pos(path["x"], path["y"]);
       }
+      this.pathArr.length = 0;
     }
     snakeScale(ele, eleType = "body") {
-      if (eleType == "body") {
-        ele.width = Config.snakeBodyRadius * this.scaleRatio;
-        ele.height = Config.snakeBodyRadius * this.scaleRatio;
-      } else {
-        ele.width = this.originWidth * this.scaleRatio;
-        ele.height = this.originHeight * this.scaleRatio;
-      }
+      ele.scaleX = this.scaleRatio;
+      ele.scaleY = this.scaleRatio;
       ele.pivot(ele.width / 2, ele.height / 2);
       Config.speedConfig["rotation"] = 4 / this.scaleRatio;
     }
@@ -426,7 +436,7 @@ var polea = (() => {
         if (snake && snake.alive) {
           let rotation = element.rotation;
           let currentSpeed = element.currentSpeed;
-          snake.curRotation = rotation;
+          snake.head.rotation = rotation;
           snake.currentSpeed = currentSpeed;
           let offsetx = element.pos.x - snake.x;
           let offsety = element.pos.y - snake.y;
@@ -486,7 +496,7 @@ var polea = (() => {
     }
     startGame() {
       this.createMap();
-      Laya.timer.frameLoop(1, this, this.gameLoop);
+      Laya.timer.frameLoop(2, this, this.gameLoop);
     }
     createMap() {
       this.battleMap = this.battleView.getChild("map").displayObject;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="216,71">
+  <displayList>
+    <image id="n17_t3x5" name="top_spot_bg" src="t3x5k" fileName="imgs/mask_bg.png" xy="0,0">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </image>
+    <text id="n21_t3x5" name="txt_title" xy="17,7" size="179,29" font="SimHei" fontSize="20" color="#ffe65c" autoSize="none" text="今日全服第一"/>
+    <image id="n22_t3x5" name="icon" src="t3x5i" fileName="imgs/图层 8.png" xy="11,35"/>
+    <text id="n23_t3x5" name="txt_nickname" xy="51,40" size="110,29" fontSize="20" color="#ffffff" autoSize="none" text="数据加载中"/>
+    <text id="n24_t3x5" name="txt_score" xy="163,40" size="52,29" fontSize="20" color="#ffffff" autoSize="none" text="9999"/>
+  </displayList>
+</component>

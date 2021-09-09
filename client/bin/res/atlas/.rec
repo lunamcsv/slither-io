@@ -1,7 +1,7 @@
 D .
-R 968A50B5 .rec
-R 5F7E45DB assets.atlas
-R 9E75345B assets.png
+R 999E07C2 .rec
+R C2B12524 assets.atlas
+R 31B12DDF assets.png
 D assets
 P 25421193 101_body_1.png
 P 309CA8FA 101_body_2.png
@@ -19,3 +19,4 @@ P A3608D61 bean_6.png
 P D191FDBB bean_7.png
 P DAF43877 bean_8.png
 P 7CF4325A bean_9.png
+P 31DA5D35 defend.png

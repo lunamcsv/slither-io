@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="216,60">
+  <controller name="status" pages="0,others,1,me" selected="0"/>
+  <displayList>
+    <text id="n0_t3x5" name="icon" xy="10,10" size="35,40" font="ui://s3p9t53it3x5p" fontSize="12" autoSize="none" text="1"/>
+    <text id="n1_t3x5" name="txt_nickname" xy="50,15" size="110,29" fontSize="20" color="#ffffff" autoSize="none" text="数据加载中">
+      <gearColor controller="status" pages="1" values="#1efffc,#000000" default="#ffffff,#000000"/>
+    </text>
+    <text id="n2_t3x5" name="txt_score" xy="162,15" size="52,29" fontSize="20" color="#ffffff" autoSize="none" text="9999">
+      <gearColor controller="status" pages="0" values="#ffffff,#000000" default="#1efffc,#000000"/>
+    </text>
+  </displayList>
+</component>

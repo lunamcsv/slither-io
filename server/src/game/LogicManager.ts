@@ -7,6 +7,7 @@ import Config from "./Config";
 import { GAME_START } from "./constants";
 import Snake from "./Snake";
 import { BoundingBox, createQuadTree, QuadTree } from 'simplequad';
+import { rnd } from "./Utils";
 export default class LogicManager {
     public room: StateHandlerRoom;
 
@@ -16,10 +17,10 @@ export default class LogicManager {
 
     private beanArr: Bean[] = [];
     private beansMap: { [id: string]: Bean } = {};
-    private beanOrder: number = 0;
     public snakeArr: Snake[] = [];
     public snakeMap: { [key: string]: Snake } = {};
     public beanQuadTree: QuadTree;
+    public teamGroup: { [key: string]: Snake[] } = {};
     public init() {
         this.createBeanQuadTree();
         this.createBean();
@@ -41,8 +42,8 @@ export default class LogicManager {
         for (let i = 0; i < Config.beanSpawnMax; i++) {
             let id = `${i}`;
             let skin = Math.floor(Math.random() * Config.beanSkinCnt + 1);
-            let x = Math.floor(Math.random() * Config.mapWidth);
-            let y = Math.floor(Math.random() * Config.mapHeight);
+            let x = rnd(Config.beanRadius, Config.mapWidth - Config.beanRadius);
+            let y = rnd(Config.beanRadius, Config.mapHeight - Config.beanRadius);
             let pos = new Vector(x, y);
             let bean = new Bean(id, pos, Config.beanRadius, skin);
             this.beanArr.push(bean);
@@ -68,7 +69,7 @@ export default class LogicManager {
             let x = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 y = Math.floor(Math.random() * (Config.mapWidth - 400)) + 200,
                 pos = new Vector(x, y);
-            let rotation = Math.floor(Math.random() * ( 360) -180 );
+            let rotation = rnd(-180, 180);
             // let rotation = 0;
             let snake = new Snake(id, skinId, pos, Config.snakeBodyRadius, rotation);
             snake.handler = this;
@@ -125,7 +126,7 @@ export default class LogicManager {
         this.broadcast(GAME_START, {})
         // 开始刷新（每一帧刷新一次）
         this.room.setSimulationInterval(this.update.bind(this), 16);
-        this.room.clock.setInterval(this.sendUpdates.bind(this), 100);
+        // this.room.clock.setInterval(this.sendUpdates.bind(this), 100);
         // setInterval(sendUpdates, 1000 / c.networkUpdateFactor);
     }
 
@@ -162,6 +163,8 @@ export default class LogicManager {
         let { id, pos } = snake;
         let { x, y } = pos;
         this.broadcast("removeSnake", { id });
+        x = rnd(-20, 20) + x;
+        y = rnd(-20, 20) + y;
         this.addBean(x, y);
         snake.bodyArr.forEach((body) => {
             let { pos } = body;

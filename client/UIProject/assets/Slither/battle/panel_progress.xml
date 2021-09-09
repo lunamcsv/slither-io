@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="216,80">
+  <displayList>
+    <image id="n20_t3x5" name="n20" src="t3x5k" fileName="imgs/mask_bg.png" xy="0,0" size="216,80">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </image>
+    <text id="n21_t3x5" name="n21" xy="18,5" size="180,29" fontSize="20" color="#ffe65c" vars="true" text="胜利条件: {current=232}/{total=1000}">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+    <text id="n22_t3x5" name="icon" xy="4,35" size="35,40" font="ui://s3p9t53it3x5p" fontSize="12" autoSize="none" text="1">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+    <text id="n23_t3x5" name="txt_nickname" xy="44,40" size="110,29" fontSize="20" color="#ffffff" autoSize="none" text="数据加载中">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+    <text id="n24_t3x5" name="txt_score" xy="156,40" size="52,29" fontSize="20" color="#ffffff" autoSize="none" text="9999">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+  </displayList>
+</component>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="217,399">
+  <displayList>
+    <component id="n17_t3x5" name="top_spot_bg" src="t3x5r" fileName="battle/panel_top_spot.xml" xy="1,0"/>
+    <component id="n18_t3x5" name="n18" src="t3x5s" fileName="battle/list_ranking.xml" xy="0,78"/>
+    <component id="n20_t3x5" name="n20" src="t3x5v" fileName="battle/panel_progress.xml" xy="0,319"/>
+  </displayList>
+</component>

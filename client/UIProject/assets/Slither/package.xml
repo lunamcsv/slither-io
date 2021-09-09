@@ -2,17 +2,31 @@
 <packageDescription id="s3p9t53i">
   <resources>
     <component id="keav0" name="Main.xml" path="/" exported="true"/>
-    <image id="j74n2" name="map.png" path="/images/" scale="tile"/>
-    <image id="o6fk3" name="bg.png" path="/images/" scale="tile" scale9grid="15,15,30,30"/>
-    <image id="o6fk4" name="btn_joystick_bg.png" path="/images/"/>
-    <image id="o6fk5" name="btn_joystick.png" path="/images/"/>
-    <component id="o6fk7" name="joystick.xml" path="/" exported="true"/>
-    <component id="o6fk8" name="btn_joystick.xml" path="/images/"/>
-    <component id="o6fk9" name="btn_joystick_bg.xml" path="/"/>
-    <component id="oyb7a" name="btn_speed.xml" path="/images/"/>
-    <image id="oyb7f" name="btn_sqeed_up.png" path="/images/"/>
-    <image id="oyb7g" name="btn_sqeed_down.png" path="/images/"/>
-    <image id="oyb7h" name="blue_cross.png" path="/images/" scale="tile" scale9grid="22,22,44,44" duplicatePadding="true"/>
+    <image id="j74n2" name="map.png" path="/imgs/" scale="tile"/>
+    <image id="o6fk3" name="bg.png" path="/imgs/" scale="tile" scale9grid="15,15,30,30"/>
+    <image id="o6fk4" name="btn_joystick_bg.png" path="/imgs/"/>
+    <image id="o6fk5" name="btn_joystick.png" path="/imgs/"/>
+    <component id="o6fk7" name="joystick.xml" path="/battle/" exported="true"/>
+    <component id="o6fk8" name="btn_joystick.xml" path="/battle/"/>
+    <component id="o6fk9" name="btn_joystick_bg.xml" path="/battle/"/>
+    <component id="oyb7a" name="btn_speed.xml" path="/battle/"/>
+    <image id="oyb7f" name="btn_sqeed_up.png" path="/imgs/"/>
+    <image id="oyb7g" name="btn_sqeed_down.png" path="/imgs/"/>
+    <image id="oyb7h" name="blue_cross.png" path="/imgs/" scale="tile" scale9grid="22,22,44,44" duplicatePadding="true"/>
+    <image id="t3x5i" name="图层 8.png" path="/imgs/"/>
+    <image id="t3x5j" name="raing_1.png" path="/imgs/"/>
+    <image id="t3x5k" name="mask_bg.png" path="/imgs/" scale="9grid" scale9grid="54,17,108,34"/>
+    <image id="t3x5l" name="raing_3.png" path="/imgs/"/>
+    <image id="t3x5m" name="raing_2.png" path="/imgs/"/>
+    <image id="t3x5n" name="btn_exit.png" path="/imgs/"/>
+    <component id="t3x5o" name="btn_exit.xml" path="/battle/"/>
+    <font id="t3x5p" name="font_ranking.fnt" path="/battle/" exported="true"/>
+    <component id="t3x5q" name="panel_ranking.xml" path="/battle/"/>
+    <component id="t3x5r" name="panel_top_spot.xml" path="/battle/"/>
+    <component id="t3x5s" name="list_ranking.xml" path="/battle/"/>
+    <component id="t3x5t" name="list_ranking_item.xml" path="/battle/"/>
+    <image id="t3x5u" name="图层 13.png" path="/battle/" disableTrim="true"/>
+    <component id="t3x5v" name="panel_progress.xml" path="/battle/"/>
   </resources>
   <publish name=""/>
 </packageDescription>

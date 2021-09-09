@@ -99,7 +99,7 @@ export default class GameManager {
             if (snake && snake.alive) {
                 let rotation = element.rotation;
                 let currentSpeed = element.currentSpeed;
-                snake.curRotation = rotation;
+                snake.head.rotation = rotation;
                 snake.currentSpeed = currentSpeed;
                 let offsetx = element.pos.x - snake.x;
                 let offsety = element.pos.y - snake.y;
@@ -175,7 +175,7 @@ export default class GameManager {
 
     startGame(): void {
         this.createMap();
-        Laya.timer.frameLoop(1, this, this.gameLoop)
+        Laya.timer.frameLoop(2, this, this.gameLoop)
     }
 
     createMap(): void {

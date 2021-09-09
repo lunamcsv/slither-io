@@ -9,7 +9,7 @@ export default class Snake extends Circle {
     speedUp: boolean = false;
     currentSpeed: string = "slow";
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 60
+    snakeLength: number = 6
     kill: number = 0;
     alive: boolean = true;
     head: Circle;
@@ -65,7 +65,7 @@ export default class Snake extends Circle {
             this.bodyMove()
             this.speedChange()
             this.rotationChange()
-            this.bodyCheck()
+            // this.bodyCheck()
             // console.log(this.pos);
         }
     }
