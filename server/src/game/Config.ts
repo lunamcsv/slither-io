@@ -9,7 +9,7 @@ export default class Config {
     public static beanSkinCnt: number = 13;
     public static beanRadius: number = 24;
     public static snakeBodyRadius: number = 64/2;
-    public static snakeSpawnCnt: number = 0;// 机器人的生成数量
+    public static snakeSpawnCnt: number = 30;// 机器人的生成数量
     public static snakeSkinLength: number = 4;
     public static speedConfig: { [key: string]: number } = { "slow": 10, "fast": 20, "rotation": 10 }
 }

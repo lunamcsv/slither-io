@@ -188,7 +188,7 @@ var polea = (() => {
     constructor(id, skinId, x, y, angle = 0) {
       super();
       this.currentSpeed = "slow";
-      this.snakeLength = 18;
+      this.snakeLength = 600;
       this.kill = 0;
       this.alive = true;
       this.bodyArr = [];
@@ -222,6 +222,10 @@ var polea = (() => {
       for (let index = 1; index <= this.getBodyNum(); index++) {
         this.addBody(this.x - index * this.bodySpace, this.y, this.rotation);
       }
+      this.pathArr.push({
+        x: this.x,
+        y: this.y
+      });
     }
     addHead() {
       this.head = new Laya.Sprite();
@@ -261,7 +265,6 @@ var polea = (() => {
       }
     }
     headMove() {
-      let posBefore = { x: this.x, y: this.y };
       let nextPosX = this.x + this.offset.x;
       let nextPosY = this.y + this.offset.y;
       if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
@@ -274,23 +277,28 @@ var polea = (() => {
       } else {
         return;
       }
-      let nextAngle = Math.floor(Math.atan2(nextPosY - posBefore.y, nextPosX - posBefore.x) * 100) / 100;
-      let pathX = Math.floor(Math.cos(nextAngle) * 10) / 10 * this.offset.x;
-      let pathY = Math.floor(Math.sin(nextAngle) * 10) / 10 * this.offset.y;
-      for (let index = 0; index < this.bodyArr.length; index++) {
-        this.pathArr.push({ x: pathX, y: pathY });
+      if (this.x == this.pathArr[0].x && this.y == this.pathArr[0].y) {
+        return;
+      }
+      this.pathArr.length = 0;
+      for (let index = 0; index <= this.bodyArr.length; index++) {
+        if (index == 0) {
+          this.pathArr.push({ x: this.x, y: this.y });
+        } else {
+          this.pathArr.push({ x: this.bodyArr[index - 1].x, y: this.bodyArr[index - 1].y });
+        }
       }
       this.offset.x = 0;
       this.offset.y = 0;
     }
     bodyMove() {
-      console.log(JSON.stringify(this.pathArr));
       for (let index = 0; index < this.bodyArr.length; index++) {
         let element = this.bodyArr[index];
         let path = this.pathArr[index];
-        element.pos(path["x"], path["y"]);
+        if (path) {
+          element.pos(path["x"], path["y"]);
+        }
       }
-      this.pathArr.length = 0;
     }
     snakeScale(ele, eleType = "body") {
       ele.scaleX = this.scaleRatio;
@@ -442,6 +450,9 @@ var polea = (() => {
           let offsety = element.pos.y - snake.y;
           snake.offset.x = offsetx;
           snake.offset.y = offsety;
+          if (!snake.bot) {
+            console.log(offsetx, offsety);
+          }
         }
       });
     }
@@ -496,7 +507,7 @@ var polea = (() => {
     }
     startGame() {
       this.createMap();
-      Laya.timer.frameLoop(2, this, this.gameLoop);
+      Laya.timer.frameLoop(1, this, this.gameLoop);
     }
     createMap() {
       this.battleMap = this.battleView.getChild("map").displayObject;

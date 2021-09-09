@@ -106,9 +106,9 @@ export default class GameManager {
                 snake.offset.x = offsetx; // 与服务器的偏差值
                 snake.offset.y = offsety;
                 // snake.move();
-                // if (!snake.bot) {
-                //     console.log(snake.offset.x,offsetx);
-                // }
+                if (!snake.bot) {
+                    console.log(offsetx,offsety);
+                }
             }
         });
     }
@@ -175,7 +175,7 @@ export default class GameManager {
 
     startGame(): void {
         this.createMap();
-        Laya.timer.frameLoop(2, this, this.gameLoop)
+        Laya.timer.frameLoop(1, this, this.gameLoop)
     }
 
     createMap(): void {
