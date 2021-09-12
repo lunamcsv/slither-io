@@ -188,7 +188,7 @@ var polea = (() => {
     constructor(id, skinId, x, y, angle = 0) {
       super();
       this.currentSpeed = "slow";
-      this.snakeLength = 600;
+      this.snakeLength = 36;
       this.kill = 0;
       this.alive = true;
       this.bodyArr = [];
@@ -229,7 +229,7 @@ var polea = (() => {
     }
     addHead() {
       this.head = new Laya.Sprite();
-      this.head.loadImage(`assets/101_body_1.png`);
+      this.head.loadImage(`assets/${this.skinId}_head.png`);
       this.head.x = this.width / 2;
       this.head.y = this.height / 2;
       this.head.pivot(this.head.width / 2, this.head.height / 2);
@@ -264,9 +264,27 @@ var polea = (() => {
         this.bodyCheck();
       }
     }
+    clamp(min, max, value) {
+      return Math.min(max, Math.max(min, value));
+    }
     headMove() {
-      let nextPosX = this.x + this.offset.x;
-      let nextPosY = this.y + this.offset.y;
+      let offsetX = this.offset.x;
+      let offsetY = this.offset.y;
+      if (offsetX > 0) {
+        offsetX = this.clamp(0, this.speedX, offsetX);
+      } else if (offsetX < 0) {
+        offsetX = this.clamp(-this.speedX, 0, offsetX);
+      }
+      if (offsetY > 0) {
+        offsetY = this.clamp(0, this.speedX, offsetY);
+      } else if (offsetY < 0) {
+        offsetY = this.clamp(-this.speedX, 0, offsetY);
+      }
+      let nextPosX = this.x + offsetX;
+      let nextPosY = this.y + offsetY;
+      if (!this.bot) {
+        console.log("moveOut:", offsetX, offsetY);
+      }
       if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
         this.x = nextPosX;
       } else {
@@ -288,8 +306,8 @@ var polea = (() => {
           this.pathArr.push({ x: this.bodyArr[index - 1].x, y: this.bodyArr[index - 1].y });
         }
       }
-      this.offset.x = 0;
-      this.offset.y = 0;
+      this.offset.x -= offsetX;
+      this.offset.y -= offsetY;
     }
     bodyMove() {
       for (let index = 0; index < this.bodyArr.length; index++) {

@@ -9,7 +9,7 @@ export default class Snake extends Circle {
     speedUp: boolean = false;
     currentSpeed: string = "slow";
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 6
+    snakeLength: number = 36
     kill: number = 0;
     alive: boolean = true;
     head: Circle;

@@ -126,7 +126,7 @@ export default class LogicManager {
         this.broadcast(GAME_START, {})
         // 开始刷新（每一帧刷新一次）
         this.room.setSimulationInterval(this.update.bind(this), 16);
-        // this.room.clock.setInterval(this.sendUpdates.bind(this), 32);
+        // this.room.clock.setInterval(this.sendUpdates.bind(this), 60);
         // setInterval(sendUpdates, 1000 / c.networkUpdateFactor);
     }
 

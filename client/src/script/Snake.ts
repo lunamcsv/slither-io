@@ -4,7 +4,7 @@ import GameManager from "../manager/GameManager";
 export default class Snake extends Laya.Sprite {
     currentSpeed: string = "slow";
     scaleRatio: number; // 缩放倍率
-    snakeLength: number = 600;
+    snakeLength: number = 36;
     kill: number = 0;
     alive: boolean = true;
     speedX: number;
@@ -62,8 +62,7 @@ export default class Snake extends Laya.Sprite {
 
     addHead() {
         this.head = new Laya.Sprite();
-        this.head.loadImage(`assets/101_body_1.png`);
-        // this.head.loadImage(`assets/${this.skinId}_head.png`);
+        this.head.loadImage(`assets/${this.skinId}_head.png`);
 
         this.head.x = this.width / 2;
         this.head.y = this.height / 2;
@@ -107,6 +106,10 @@ export default class Snake extends Laya.Sprite {
         }
     }
 
+    clamp(min, max, value) {
+        return Math.min(max, Math.max(min, value));
+    }
+
     // curtime: number = Date.now();
     headMove(): void {
         // let angle = Math.floor(this.rotation * Math.PI / 180 * 100) / 100;
@@ -122,8 +125,23 @@ export default class Snake extends Laya.Sprite {
         //     offsetx = this.offset.x > this.speedX ? this.speedX : 0;
         //     this.offset.x -= this.speedX;
         // }
-        let nextPosX = this.x + this.offset.x;
-        let nextPosY = this.y + this.offset.y;
+        let offsetX = this.offset.x;
+        let offsetY = this.offset.y;
+        if(offsetX>0){
+            offsetX = this.clamp(0,this.speedX,offsetX);
+        }else if(offsetX<0){
+            offsetX = this.clamp(-this.speedX,0,offsetX);
+        }
+        if(offsetY>0){
+            offsetY = this.clamp(0,this.speedX,offsetY);
+        }else if(offsetY<0){
+            offsetY = this.clamp(-this.speedX,0,offsetY);
+        }
+        let nextPosX = this.x + offsetX;
+        let nextPosY = this.y + offsetY;
+        if (!this.bot) {
+                console.log("moveOut:", offsetX,offsetY)
+            }
         // this.rotation = this.nextRotation;
         if (!(nextPosX >= Config.mapWidth - this.width / 2 || nextPosX <= this.width / 2)) {
             this.x = nextPosX;
@@ -170,8 +188,8 @@ export default class Snake extends Laya.Sprite {
             //     console.log("pathArr:", pathX, pathY)
         }
         // }
-        this.offset.x = 0;
-        this.offset.y = 0;
+        this.offset.x -= offsetX;
+        this.offset.y -= offsetY;
     }
 
     bodyMove(): void {
